@@ -1,84 +1,85 @@
-import tunnelSsh from "tunnel-ssh";
-import { Server } from "net";
-import mysql from "mysql";
-import { exec } from "child_process";
-import { ACTIVE_MEMBERS_WITH_ACTIVITIES } from "./queries.js";
-import { ACTIVITIES } from "./consts.js";
+import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseUser } from "./myclubhouse.js";
+import { execSync } from "child_process";
 
-function createTunnel() {
-  return new Promise<Server>((resolve, reject) => {
-    tunnelSsh(
-      {
-        keepAlive: true,
-        host: process.env.SSH_HOST,
-        port: process.env.SSH_PORT ? parseInt(process.env.SSH_PORT) : 22,
-        username: process.env.SSH_USERNAME,
-        password: process.env.SSH_PASSWORD,
-        dstHost: process.env.MYSQL_HOST ?? "127.0.0.1",
-        dstPort: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 3306,
-        localHost: "127.0.0.1",
-        localPort: process.env.MYSQL_LOCAL_PORT ? parseInt(process.env.MYSQL_LOCAL_PORT) : 3306,
-      },
-      (error, tunnel) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(tunnel);
-        }
-      }
-    );
-  });
+const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
+if (!SIGNAL_CLI) {
+  throw new Error("signal-cli no found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
 
-function connectToDatabase(database: string) {
-  return mysql.createConnection({
-    host: process.env.MYSQL_HOST ?? "127.0.0.1",
-    port: process.env.MYSQL_LOCAL_PORT ? parseInt(process.env.MYSQL_LOCAL_PORT) : 3306,
-    user: process.env.MYSQL_USERNAME,
-    password: process.env.MYSQL_PASSWORD,
-    database,
-  });
+const SIGNAL_USER = process.env.SIGNAL_USER;
+if (!SIGNAL_USER) {
+  throw new Error("SIGNAL_USER not set.");
 }
 
-function queryDatabase(connection: mysql.Connection, query: string | mysql.QueryOptions) {
-  return new Promise<{
-    results: any;
-    fields?: mysql.FieldInfo[];
-  }>((resolve, reject) => {
-    connection.query(query, (error, results, fields) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve({
-          results,
-          fields,
-        });
-      }
-    });
-  });
+const SIGNAL_GROUP_IDS = {
+  Committee: "X53nkGftCmc/j4SXjXJjzyVyTeGi0t+j/lkC5PSEVB0=",
+} as const;
+
+function exec(command: string) {
+  if (process.env.NODE_ENV !== "production") {
+    console.log("*", command);
+  }
+  return execSync(command).toString();
+}
+
+function getUserStatus(
+  ...numbers: string[]
+): { recipient: string; number: string; uuid: string; isRegistered: boolean }[] {
+  return JSON.parse(
+    exec(`${SIGNAL_CLI} -o json -u "${SIGNAL_USER}" getUserStatus ${numbers.map((number) => `"${number}"`).join(" ")}`)
+  );
+}
+
+function filterSignalNumbers(numbers: string[]): typeof numbers {
+  return getUserStatus(...numbers)
+    .filter((user) => user.isRegistered)
+    .map((user) => user.number);
+}
+
+function normalizePhoneNumber(phoneNumber: string) {
+  // TODO: properly clean country code of phone numbers
+  if (phoneNumber.startsWith("0")) {
+    return phoneNumber.replace(/^0/, "+44");
+  } else {
+    return phoneNumber;
+  }
+}
+
+function phoneNumbers(users: MyClubhouseUser[]) {
+  return users.map((user) => normalizePhoneNumber(user.MobileTelephone));
+}
+
+function addNumbersToGroup(groupId: string, numbers: string[]) {
+  console.log(
+    // TODO: warn when a user is not a Signal user
+    exec(
+      `${SIGNAL_CLI} -u "${SIGNAL_USER}" updateGroup -g "${SIGNAL_GROUP_IDS.Committee}" -m ${filterSignalNumbers(
+        numbers
+      )
+        .map((number) => `"${number}"`)
+        .join(" ")}`
+    )
+  );
 }
 
 async function main() {
-  const tunnel = process.env.SSH_HOST ? await createTunnel() : null;
-  try {
-    const dbConnection = connectToDatabase("brighton_explorers");
-    const { results: users } = await queryDatabase(dbConnection, ACTIVE_MEMBERS_WITH_ACTIVITIES);
-    dbConnection.end();
+  const users = await getActiveUsers();
 
-    console.log("Total users:", users.length);
-    console.log("");
+  const committeeUsers = users.filter((user) => user.Roles?.some((role) => role.Name === "Committee Member"));
 
-    ACTIVITIES.forEach((activity) => {
-      console.log(
+  const activityUsers = ALL_ACTIVITIES.map(
+    (activity) =>
+      [
         activity,
-        (users as ({ firstname: string; lastname: string } & Record<typeof activity, 0 | 1>)[]).filter(
-          (user) => user[activity] === 1
-        ).length
-      );
-    });
-  } finally {
-    tunnel?.close();
-  }
+        users.filter((user) =>
+          user.Attributes.Activities?.some((activityPreference) => activityPreference === activity)
+        ),
+      ] as const
+  );
+
+  addNumbersToGroup(SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
+
+  // TODO: activities
 }
 
 main();
