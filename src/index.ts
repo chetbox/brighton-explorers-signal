@@ -1,10 +1,30 @@
-import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseUser } from "./myclubhouse.js";
+import {
+  ALL_ACTIVITIES,
+  getActiveUsers,
+  MyClubhouseActivity,
+  MyClubhouseRole,
+  MyClubhouseUser,
+} from "./myclubhouse.js";
 import { execSync } from "child_process";
 import { addNumbersToGroup, listGroups, removeNumbersFromGroup, setGroupPermissions, SIGNAL_USER } from "./signal.js";
 
-const SIGNAL_GROUP_IDS = {
+const SIGNAL_GROUP_IDS: Readonly<Record<"Committee" | MyClubhouseActivity, string>> = {
   Committee: "X53nkGftCmc/j4SXjXJjzyVyTeGi0t+j/lkC5PSEVB0=",
-} as const;
+  Badminton: "", // TODO
+  Caving: "", // TODO
+  Climbing: "", // TODO
+  Coasteering: "", // TODO
+  "Cycling (Road)": "", // TODO
+  Kayaking: "", // TODO
+  "Mountain Biking": "", // TODO
+  "Mountain Sports": "", // TODO
+  "Stand Up Paddleboarding (SUP)": "", // TODO
+  Surfing: "", // TODO
+  Tennis: "", // TODO
+  Walking: "", // TODO
+  Windsurfing: "", // TODO
+  Running: "", // TODO
+};
 
 function normalizePhoneNumber(phoneNumber: string) {
   // TODO: properly clean country code of phone numbers
@@ -53,7 +73,9 @@ function setupGroup(groupId: string, expectedNumbers: string[]) {
 async function main() {
   const users = await getActiveUsers();
 
+  console.log("->", "Committee");
   const committeeUsers = users.filter((user) => user.Roles?.some((role) => role.Name === "Committee Member"));
+  setupGroup(SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
 
   const activityUsers = ALL_ACTIVITIES.map(
     (activity) =>
@@ -65,9 +87,19 @@ async function main() {
       ] as const
   );
 
-  setupGroup(SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
+  for (const activity of ALL_ACTIVITIES) {
+    console.log("->", activity);
 
-  // TODO: activities
+    if (!(activity in SIGNAL_GROUP_IDS) || !SIGNAL_GROUP_IDS[activity]) {
+      console.warn(`No Signal group for activity "${activity}"`);
+      continue;
+    }
+
+    const userPhoneNumbers = activityUsers
+      .find(([activityName]) => activityName === activity)?.[1]
+      .map((user) => user.MobileTelephone);
+    setupGroup(SIGNAL_GROUP_IDS[activity], userPhoneNumbers ?? []);
+  }
 }
 
 main();
