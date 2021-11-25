@@ -10,20 +10,20 @@ import { addNumbersToGroup, listGroups, removeNumbersFromGroup, setGroupPermissi
 
 const SIGNAL_GROUP_IDS: Readonly<Record<"Committee" | MyClubhouseActivity, string>> = {
   Committee: "X53nkGftCmc/j4SXjXJjzyVyTeGi0t+j/lkC5PSEVB0=",
-  Badminton: "", // TODO
-  Caving: "", // TODO
-  Climbing: "", // TODO
-  Coasteering: "", // TODO
-  "Cycling (Road)": "", // TODO
-  Kayaking: "", // TODO
-  "Mountain Biking": "", // TODO
-  "Mountain Sports": "", // TODO
-  "Stand Up Paddleboarding (SUP)": "", // TODO
-  Surfing: "", // TODO
-  Tennis: "", // TODO
-  Walking: "", // TODO
-  Windsurfing: "", // TODO
-  Running: "", // TODO
+  Badminton: "YevZNjEe9saUGlr2imkRO9LcHejWvOKqzdw357bByVg=",
+  Caving: "oNV/8FrXF0sXXrVY15amqqfzDDjFekSUyqy0JXp09dw=",
+  Climbing: "XRbb1rGeBp04iewJdvN0zKteEk6FVSi8uQ16Jh6eM18=",
+  Coasteering: "yd0QjoJuv1l9iT4Ng1rpxEVxkWt6IlI3kaXqHu+PRd4=",
+  "Cycling (Road)": "UH+BHenDk7LQ4ORQwkT4Kv/cqV1vcEgR8HHG5sVopCE=",
+  Kayaking: "DdzG6QxJQujbrLBt8/UHk9h5Q7etPOERd2m29hOCibU=",
+  "Mountain Biking": "bzAyvA3mrdl6Aw56w2WspdJsPtzh/sGqXr0ywRvQ/RY=",
+  "Mountain Sports": "Nwexth0dHHCmClIvMrFQta1JXdl1bG0apXf5Ih72e7Q=",
+  "Stand Up Paddleboarding (SUP)": "aODJJjeMN+3WbUsq5PaX7Ktjz5p61LyI76CGxbnllcM=",
+  Surfing: "SYDdPZNK7fd35uBRA7Si0b1h4jjpX/DDzPiERnWY/Ew=",
+  Tennis: "kcamKEN3kDTrZ0+U0CHBGen9ehZX3OrIUokAsY3Fuqw=",
+  Walking: "BDrvfvbeL9C27v8q1TN58p1c1EGs4pjuTVZLPciARJk=",
+  Windsurfing: "JFyZVTYGzbGf4gUozTIksr5cPUz35Lx6kLJF6Qm3SoU=",
+  Running: "sgOMy2B+6znvoVg5XIuptExIgInn5VLtpB0O4WzNjhY=",
 };
 
 function normalizePhoneNumber(phoneNumber: string) {
