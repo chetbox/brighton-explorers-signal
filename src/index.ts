@@ -1,3 +1,4 @@
+import { DEBUG } from "./debug.js";
 import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import * as signal from "./signal.js";
 
@@ -28,12 +29,10 @@ function normalizePhoneNumber(phoneNumber: string) {
   }
 }
 
-function phoneNumbers(users: MyClubhouseUser[]) {
-  return users.map((user) => normalizePhoneNumber(user.MobileTelephone));
-}
+function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyClubhouseUser[]) {
+  console.log(`👯 "${groupName}" - ${expectedUsers.length} member(s)`);
 
-function setupGroup(groupName: string, groupId: string, expectedNumbers: string[]) {
-  console.log("->", groupName, "-", `${expectedNumbers.length} member(s)`);
+  const groupId = SIGNAL_GROUP_IDS[groupName];
 
   const existingGroup = signal.listGroups().find(({ id }) => id === groupId);
   if (!existingGroup) {
@@ -50,6 +49,7 @@ function setupGroup(groupName: string, groupId: string, expectedNumbers: string[
   }
 
   // Set group members
+  const expectedNumbers = expectedUsers.map((user) => normalizePhoneNumber(user.MobileTelephone));
   const expectedNumbersSet = new Set([signal.USER, ...expectedNumbers]);
   const existingNumbers = new Set(
     [...existingGroup.admins, ...existingGroup.members, ...existingGroup.pendingMembers].map((member) => member.number)
@@ -58,12 +58,12 @@ function setupGroup(groupName: string, groupId: string, expectedNumbers: string[
   const oldNumbers = [...existingNumbers].filter((number) => !expectedNumbersSet.has(number));
 
   if (oldNumbers.length > 0) {
-    console.log(`Removing old numbers from group "${groupName}" (${groupId})`, oldNumbers);
+    console.log(`Removing old numbers from group "${groupName}" (${groupId})`, DEBUG ? oldNumbers : oldNumbers.length);
     signal.removeNumbersFromGroup(groupId, oldNumbers);
   }
 
   if (newNumbers.length > 0) {
-    console.log(`Adding new numbers to group "${groupName}" (${groupId})`, newNumbers);
+    console.log(`Adding new numbers to group "${groupName}" (${groupId})`, DEBUG ? newNumbers : newNumbers.length);
     signal.addNumbersToGroup(groupId, newNumbers);
   }
 }
@@ -75,10 +75,10 @@ async function main() {
 
   {
     const committeeUsers = users.filter((user) => user.Roles?.some((role) => role.Name === "Committee Member"));
-    setupGroup("Committee", SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
+    setupGroup("Committee", committeeUsers);
   }
 
-  const activityUsers = ALL_ACTIVITIES.map(
+  const allActivityUsers = ALL_ACTIVITIES.map(
     (activity) =>
       [
         activity,
@@ -89,8 +89,8 @@ async function main() {
   );
 
   for (const activity of ALL_ACTIVITIES) {
-    const userPhoneNumbers = phoneNumbers(activityUsers.find(([activityName]) => activityName === activity)?.[1] ?? []);
-    setupGroup(activity, SIGNAL_GROUP_IDS[activity], userPhoneNumbers ?? []);
+    const activityUsers = allActivityUsers.find(([activityName]) => activityName === activity)?.[1] ?? [];
+    setupGroup(activity, activityUsers);
   }
 }
 

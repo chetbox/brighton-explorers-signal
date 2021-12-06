@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { DEBUG } from "./debug.js";
 
 export interface SignalMember {
   number: string;
@@ -40,7 +41,7 @@ if (!USER) {
 }
 
 function exec(command: string) {
-  if (process.env.DEBUG === "true") {
+  if (DEBUG) {
     console.log("$", command);
   }
   return execSync(command).toString();
@@ -76,23 +77,19 @@ export function addNumbersToGroup(groupId: string, numbers: string[]) {
     return;
   }
 
-  console.log(
-    exec(
-      `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -m ${validNumbers
-        .map((number) => `"${number}"`)
-        .join(" ")}`
-    )
+  const result = exec(
+    `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -m ${validNumbers.map((number) => `"${number}"`).join(" ")}`
   );
+  DEBUG && console.log(result);
 }
 
 export function removeNumbersFromGroup(groupId: string, numbers: string[]) {
-  console.log(
-    exec(
-      `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -r ${filterSignalNumbers(numbers)
-        .map((number) => `"${number}"`)
-        .join(" ")}`
-    )
+  const result = exec(
+    `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -r ${filterSignalNumbers(numbers)
+      .map((number) => `"${number}"`)
+      .join(" ")}`
   );
+  DEBUG && console.log(result);
 }
 
 export function setGroupPermissions(
@@ -102,5 +99,6 @@ export function setGroupPermissions(
   const args = Object.entries(permissions)
     .map(([name, value]) => `--set-permission-${name} "${value}"`)
     .join(" ");
-  console.log(exec(`${SIGNAL_CLI} -o json -u "${USER}" updateGroup -g "${groupId}" ${args}`));
+  const result = exec(`${SIGNAL_CLI} -o json -u "${USER}" updateGroup -g "${groupId}" ${args}`);
+  DEBUG && console.log(result);
 }
