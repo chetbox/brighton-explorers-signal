@@ -39,7 +39,7 @@ function phoneNumbers(users: MyClubhouseUser[]) {
   return users.map((user) => normalizePhoneNumber(user.MobileTelephone));
 }
 
-function setupGroup(groupId: string, expectedNumbers: string[]) {
+function setupGroup(groupName: string, groupId: string, expectedNumbers: string[]) {
   const existingGroup = listGroups().find(({ id }) => id === groupId);
   if (!existingGroup) {
     throw new Error(`Group ${groupId} does not exist`);
@@ -47,6 +47,7 @@ function setupGroup(groupId: string, expectedNumbers: string[]) {
 
   // Set group permissions
   if (existingGroup.permissionAddMember !== "ONLY_ADMINS" || existingGroup.permissionEditDetails !== "ONLY_ADMINS") {
+    console.log(`Updating group permissions for "${groupName}" (${groupId})`);
     setGroupPermissions(groupId, {
       "add-member": "only-admins",
       "edit-details": "only-admins",
@@ -62,10 +63,12 @@ function setupGroup(groupId: string, expectedNumbers: string[]) {
   const oldNumbers = [...existingNumbers].filter((number) => !expectedNumbersSet.has(number));
 
   if (oldNumbers.length > 0) {
+    console.log(`Removing old numbers from group "${groupName}" (${groupId})`, oldNumbers);
     removeNumbersFromGroup(groupId, oldNumbers);
   }
 
   if (newNumbers.length > 0) {
+    console.log(`Adding new numbers to group "${groupName}" (${groupId})`, newNumbers);
     addNumbersToGroup(groupId, newNumbers);
   }
 }
@@ -75,7 +78,7 @@ async function main() {
 
   console.log("->", "Committee");
   const committeeUsers = users.filter((user) => user.Roles?.some((role) => role.Name === "Committee Member"));
-  setupGroup(SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
+  setupGroup("Committee", SIGNAL_GROUP_IDS.Committee, phoneNumbers(committeeUsers));
 
   const activityUsers = ALL_ACTIVITIES.map(
     (activity) =>
@@ -90,15 +93,10 @@ async function main() {
   for (const activity of ALL_ACTIVITIES) {
     console.log("->", activity);
 
-    if (!(activity in SIGNAL_GROUP_IDS) || !SIGNAL_GROUP_IDS[activity]) {
-      console.warn(`No Signal group for activity "${activity}"`);
-      continue;
-    }
-
     const userPhoneNumbers = activityUsers
       .find(([activityName]) => activityName === activity)?.[1]
       .map((user) => user.MobileTelephone);
-    setupGroup(SIGNAL_GROUP_IDS[activity], userPhoneNumbers ?? []);
+    setupGroup(activity, SIGNAL_GROUP_IDS[activity], userPhoneNumbers ?? []);
   }
 }
 

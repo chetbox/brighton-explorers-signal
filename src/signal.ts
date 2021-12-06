@@ -40,8 +40,8 @@ if (!SIGNAL_USER) {
 }
 
 function exec(command: string) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("*", command);
+  if (process.env.DEBUG === "true") {
+    console.log("$", command);
   }
   return execSync(command).toString();
 }
