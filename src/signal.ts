@@ -34,8 +34,8 @@ if (!SIGNAL_CLI) {
   throw new Error("signal-cli no found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
 
-export const SIGNAL_USER = process.env.SIGNAL_USER;
-if (!SIGNAL_USER) {
+export const USER = process.env.SIGNAL_USER;
+if (!USER) {
   throw new Error("SIGNAL_USER not set.");
 }
 
@@ -52,14 +52,18 @@ function filterSignalNumbers(numbers: string[]): typeof numbers {
     .map((user) => user.number);
 }
 
+export function receiveMessages() {
+  exec(`${SIGNAL_CLI} -o json -u "${USER}" receive`);
+}
+
 export function getUserStatus(...numbers: string[]): SignalMemberStatus[] {
   return JSON.parse(
-    exec(`${SIGNAL_CLI} -o json -u "${SIGNAL_USER}" getUserStatus ${numbers.map((number) => `"${number}"`).join(" ")}`)
+    exec(`${SIGNAL_CLI} -o json -u "${USER}" getUserStatus ${numbers.map((number) => `"${number}"`).join(" ")}`)
   );
 }
 
 export function listGroups(): SignalGroup[] {
-  return JSON.parse(exec(`${SIGNAL_CLI} -o json -u "${SIGNAL_USER}" listGroups -d`));
+  return JSON.parse(exec(`${SIGNAL_CLI} -o json -u "${USER}" listGroups -d`));
 }
 
 export function addNumbersToGroup(groupId: string, numbers: string[]) {
@@ -74,7 +78,7 @@ export function addNumbersToGroup(groupId: string, numbers: string[]) {
 
   console.log(
     exec(
-      `${SIGNAL_CLI} -u "${SIGNAL_USER}" updateGroup -g "${groupId}" -m ${validNumbers
+      `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -m ${validNumbers
         .map((number) => `"${number}"`)
         .join(" ")}`
     )
@@ -84,7 +88,7 @@ export function addNumbersToGroup(groupId: string, numbers: string[]) {
 export function removeNumbersFromGroup(groupId: string, numbers: string[]) {
   console.log(
     exec(
-      `${SIGNAL_CLI} -u "${SIGNAL_USER}" updateGroup -g "${groupId}" -r ${filterSignalNumbers(numbers)
+      `${SIGNAL_CLI} -u "${USER}" updateGroup -g "${groupId}" -r ${filterSignalNumbers(numbers)
         .map((number) => `"${number}"`)
         .join(" ")}`
     )
@@ -98,5 +102,5 @@ export function setGroupPermissions(
   const args = Object.entries(permissions)
     .map(([name, value]) => `--set-permission-${name} "${value}"`)
     .join(" ");
-  console.log(exec(`${SIGNAL_CLI} -o json -u "${SIGNAL_USER}" updateGroup -g "${groupId}" ${args}`));
+  console.log(exec(`${SIGNAL_CLI} -o json -u "${USER}" updateGroup -g "${groupId}" ${args}`));
 }
