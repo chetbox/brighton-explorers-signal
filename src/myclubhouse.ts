@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { DEBUG } from "./debug.js";
 
 const ACTIVE_USERS_URL =
   "https://www.myclubhouse.co.uk/brightonexplorers/api/v1/users?filter=IsCurrentMember%3Dtrue&pageSize=1000";
@@ -102,6 +103,7 @@ export interface MyClubhouseEvent {
 }
 
 export async function getActiveUsers() {
+  DEBUG && console.log("↓", ACTIVE_USERS_URL);
   return (
     (await (
       await fetch(ACTIVE_USERS_URL, {
@@ -114,6 +116,7 @@ export async function getActiveUsers() {
 }
 
 export async function getEvents() {
+  DEBUG && console.log("↓", EVENTS_URL);
   return (
     (await (
       await fetch(EVENTS_URL, {
