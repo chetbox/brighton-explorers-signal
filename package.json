@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "yarn build && node ."
+    "start": "yarn build && SIGNAL_CLI=./signal-cli-0.10.8/bin/signal-cli node ."
   },
   "dependencies": {
     "node-fetch": "^3.1.0"

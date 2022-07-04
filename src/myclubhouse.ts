@@ -12,7 +12,7 @@ if (!API_ACCESS_TOKEN) {
 
 export interface MyClubhouseRole {
   ID: number;
-  Name: "Treasurer" | "Committee Member";
+  Name: "Treasurer" | "BEC Committee Member" | "BEC Committee Monitor";
   SecurityLevel: number;
   MembershipSubset: null | string[];
 }
@@ -21,7 +21,6 @@ export const ALL_ACTIVITIES = [
   "Badminton",
   "Caving",
   "Climbing",
-  "Coasteering",
   "Cycling (Road)",
   "Kayaking",
   "Mountain Biking",
@@ -39,11 +38,14 @@ export type MyClubhouseActivity = typeof ALL_ACTIVITIES[number];
 export interface MyClubhouseUser {
   ID: number;
   Username: string;
+  MembershipNumber: string;
 
   Title: string;
   Forename: string;
   MiddleName: string;
   Surname: string;
+  CompanyName: string | null;
+  Branch: string | null;
 
   HomeTelephone: string;
   BusinessTelephone: string;
@@ -58,32 +60,45 @@ export interface MyClubhouseUser {
   };
 }
 
+export type MyClubhouseEventOrganizer = Pick<
+  MyClubhouseUser,
+  "ID" | "Username" | "MembershipNumber" | "Title" | "Forename" | "MiddleName" | "Surname" | "CompanyName" | "Branch"
+>;
 export interface MyClubhouseEventType {
   ID: number;
-  Name: "Climbing"; // TODO
-  ShortName: "Climbing"; // TODO
+  Name: string;
+  ShortName: string;
 }
 
 export interface MyClubhouseEvent {
-  ID: number;
-  Types: string;
+  ID: string;
+  Type: MyClubhouseEventType[];
+  SeriesID?: number;
+  Name: string;
+  Description: string;
+  ViewURL: string;
 
-  Title: string;
-  Forename: string;
-  MiddleName: string;
-  Surname: string;
+  StartTime: string;
+  EndTime: string;
+  IsMultiDay: boolean;
 
-  HomeTelephone: string;
-  BusinessTelephone: string;
-  MobileTelephone: string;
+  IsDraft: boolean;
+  IsCancelled: boolean;
+  CancellationReason: string | null;
 
-  Email: string;
+  HasCosts: boolean;
+  CostStructure: any | null;
 
-  Roles: MyClubhouseRole[] | null;
+  MinAttendees: number | null;
+  MaxAttendees: number | null;
 
-  Attributes: {
-    Activities: MyClubhouseActivity[] | null;
-  };
+  Organizer: MyClubhouseEventOrganizer;
+  SecondOrganizer: MyClubhouseEventOrganizer | null;
+
+  VenueName: string;
+  VenueDirections: string;
+  VenueLatitude: string;
+  VenueLongitude: string;
 }
 
 export async function getActiveUsers() {

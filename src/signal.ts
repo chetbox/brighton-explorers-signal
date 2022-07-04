@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import { DEBUG } from "./debug.js";
 
 export interface SignalMember {
-  number: string;
+  number: string | null;
   uuid: string;
 }
 
@@ -50,7 +50,8 @@ function exec(command: string) {
 function filterSignalNumbers(numbers: string[]): typeof numbers {
   return getUserStatus(...numbers)
     .filter((user) => user.isRegistered)
-    .map((user) => user.number);
+    .map((user) => user.number)
+    .filter((number): number is string => Boolean(number));
 }
 
 export function receiveMessages() {
