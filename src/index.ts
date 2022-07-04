@@ -80,8 +80,8 @@ function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyC
 }
 
 async function main() {
-  DEBUG && console.log("🪲 Debug mode. PPI may be shown on the console");
-  DRY_RUN && console.log("🧪 Dry-run mode, not making any changes");
+  DEBUG && console.log("🪲 Debug mode. PPI may be shown on the console.");
+  DRY_RUN && console.log("🧪 Dry-run mode, not making any changes.");
   (DEBUG || DRY_RUN) && console.log("");
 
   signal.receiveMessages();

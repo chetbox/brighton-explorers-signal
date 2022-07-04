@@ -1,8 +1,8 @@
-# on:
-#   schedule:
-#     - cron: "23,53 * * * *" # Every 30 mins
-
-on: push
+on:
+  schedule:
+    - cron: "23,53 * * * *" # Every 30 mins
+  push:
+    branches: [main]
 
 jobs:
   sync-groups:
@@ -25,5 +25,6 @@ jobs:
       - run: yarn build
       - run: yarn start
         env:
+          DRY_RUN: ${{ github.ref == 'refs/heads/main' && "false" || "true" }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
           MYCLUBHOUSE_ACCESS_TOKEN: ${{ secrets.MYCLUBHOUSE_ACCESS_TOKEN }}
