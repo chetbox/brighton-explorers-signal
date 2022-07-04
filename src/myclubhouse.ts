@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { DEBUG } from "./debug.js";
+import { DEBUG } from "./env.js";
 
 const ACTIVE_USERS_URL =
   "https://www.myclubhouse.co.uk/brightonexplorers/api/v1/users?filter=IsCurrentMember%3Dtrue&pageSize=1000";

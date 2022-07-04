@@ -1,8 +1,6 @@
-import { DEBUG, DRY_RUN } from "./debug.js";
+import { ACTIVITIES_ENABLED, DEBUG, DRY_RUN } from "./env.js";
 import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import * as signal from "./signal.js";
-
-const ENABLE_ACTIVITIES = false;
 
 const SIGNAL_GROUP_IDS: Readonly<Record<"Committee" | MyClubhouseActivity, string>> = {
   Committee: "jkhJAZMMjA8eHDyrCDOC3d8D+L1DKhacSa0GF+UDyFM=",
@@ -95,7 +93,7 @@ async function main() {
     setupGroup("Committee", committeeUsers);
   }
 
-  if (ENABLE_ACTIVITIES) {
+  if (ACTIVITIES_ENABLED) {
     const allActivityUsers = ALL_ACTIVITIES.map(
       (activity) =>
         [

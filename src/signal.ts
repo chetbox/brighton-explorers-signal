@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { DEBUG } from "./debug.js";
+import { DEBUG } from "./env.js";
 
 export interface SignalMember {
   number: string | null;
