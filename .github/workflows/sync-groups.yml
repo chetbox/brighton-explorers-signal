@@ -1,0 +1,21 @@
+# on:
+#   schedule:
+#     - cron: "23,53 * * * *" # Every 30 mins
+
+on: push
+
+jobs:
+  sync-groups:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zxv
+      - run: yarn
+      - run: yarn build
+      - run: yarn start
+        env:
+          SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
+          MYCLUBHOUSE_ACCESS_TOKEN: ${{ secrets.MYCLUBHOUSE_ACCESS_TOKEN }}

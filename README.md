@@ -18,5 +18,6 @@ Run automations:
 
 ```shell
 yarn
+yarn build
 SIGNAL_USER=+447XXXXXXXXX MYCLUBHOUSE_ACCESS_TOKEN=XXXXXXXXXX yarn start
 ```
