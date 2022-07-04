@@ -9,7 +9,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-and-run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,33 +18,21 @@ jobs:
           node-version: 16.x
       - run: yarn
       - run: yarn build
-      - uses: actions/upload-artifact@v3
-        with:
-          name: node-dist
-          path: dist
-  run:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - uses: actions/download-artifact@v2
-        with:
-          name: node-dist
-          path: dist
-      - uses: actions/setup-java@v3
+      # From here we only run if on main branch
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: "17"
-      - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zx
-      - uses: actions/cache@v3
+      - if: github.ref == 'refs/heads/main'
+        run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zx
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/cache@v3
         with:
           path: .signal-cli-data
           key: signal-cli-data
-      - run: yarn
-      - run: yarn start
+      - if: github.ref == 'refs/heads/main'
+        run: yarn start
         env:
           DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
