@@ -30,10 +30,13 @@ export interface SignalGroup {
   groupInviteLink: string | null;
 }
 
-const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
+const SIGNAL_CLI_DATA_DIR = "./.signal-cli-data";
+
+let SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
 if (!SIGNAL_CLI) {
   throw new Error("signal-cli no found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
+SIGNAL_CLI = `${SIGNAL_CLI} --config "${SIGNAL_CLI_DATA_DIR}"`;
 
 export const USER = process.env.SIGNAL_USER;
 if (!USER) {

@@ -2,3 +2,4 @@
 node_modules/
 dist/
 signal-cli-*/
+.signal-cli-data/
