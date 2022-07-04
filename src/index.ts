@@ -1,4 +1,4 @@
-import { DEBUG } from "./debug.js";
+import { DEBUG, DRY_RUN } from "./debug.js";
 import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import * as signal from "./signal.js";
 
@@ -50,10 +50,11 @@ function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyC
   // Set group permissions
   if (existingGroup.permissionAddMember !== "ONLY_ADMINS" || existingGroup.permissionEditDetails !== "ONLY_ADMINS") {
     console.log(`Updating group permissions for "${groupName}" (${groupId})`);
-    signal.setGroupPermissions(groupId, {
-      "add-member": "only-admins",
-      "edit-details": "only-admins",
-    });
+    !DRY_RUN &&
+      signal.setGroupPermissions(groupId, {
+        "add-member": "only-admins",
+        "edit-details": "only-admins",
+      });
   }
 
   // Set group members
@@ -69,16 +70,20 @@ function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyC
 
   if (oldNumbers.length > 0) {
     console.log(`Removing old numbers from group "${groupName}" (${groupId})`, DEBUG ? oldNumbers : oldNumbers.length);
-    signal.removeNumbersFromGroup(groupId, oldNumbers);
+    !DRY_RUN && signal.removeNumbersFromGroup(groupId, oldNumbers);
   }
 
   if (newNumbers.length > 0) {
     console.log(`Adding new numbers to group "${groupName}" (${groupId})`, DEBUG ? newNumbers : newNumbers.length);
-    signal.addNumbersToGroup(groupId, newNumbers);
+    !DRY_RUN && signal.addNumbersToGroup(groupId, newNumbers);
   }
 }
 
 async function main() {
+  DEBUG && console.log("🪲 Debug mode. PPI may be shown on the console");
+  DRY_RUN && console.log("🧪 Dry-run mode, not making any changes");
+  (DEBUG || DRY_RUN) && console.log("");
+
   signal.receiveMessages();
 
   const users = await getActiveUsers();
