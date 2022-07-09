@@ -6,19 +6,19 @@ const ACTIVITIES_ENABLED: MyClubhouseActivity[] = [];
 
 const SIGNAL_GROUP_IDS: Readonly<Record<"Committee" | MyClubhouseActivity, string>> = {
   Committee: "jkhJAZMMjA8eHDyrCDOC3d8D+L1DKhacSa0GF+UDyFM=",
-  Badminton: "YevZNjEe9saUGlr2imkRO9LcHejWvOKqzdw357bByVg=",
-  Caving: "oNV/8FrXF0sXXrVY15amqqfzDDjFekSUyqy0JXp09dw=",
-  Climbing: "XRbb1rGeBp04iewJdvN0zKteEk6FVSi8uQ16Jh6eM18=",
-  "Cycling (Road)": "UH+BHenDk7LQ4ORQwkT4Kv/cqV1vcEgR8HHG5sVopCE=",
-  Kayaking: "DdzG6QxJQujbrLBt8/UHk9h5Q7etPOERd2m29hOCibU=",
-  "Mountain Biking": "bzAyvA3mrdl6Aw56w2WspdJsPtzh/sGqXr0ywRvQ/RY=",
-  "Mountain Sports": "Nwexth0dHHCmClIvMrFQta1JXdl1bG0apXf5Ih72e7Q=",
-  "Stand Up Paddleboarding (SUP)": "aODJJjeMN+3WbUsq5PaX7Ktjz5p61LyI76CGxbnllcM=",
-  Surfing: "SYDdPZNK7fd35uBRA7Si0b1h4jjpX/DDzPiERnWY/Ew=",
-  Tennis: "kcamKEN3kDTrZ0+U0CHBGen9ehZX3OrIUokAsY3Fuqw=",
-  Walking: "BDrvfvbeL9C27v8q1TN58p1c1EGs4pjuTVZLPciARJk=",
-  Windsurfing: "JFyZVTYGzbGf4gUozTIksr5cPUz35Lx6kLJF6Qm3SoU=",
-  Running: "sgOMy2B+6znvoVg5XIuptExIgInn5VLtpB0O4WzNjhY=",
+  Badminton: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=",
+  Caving: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=",
+  Climbing: "w8AwJdbepA3L9uk0EfSUCV/B55aMb91Wk/QzFe1lJQ4=",
+  "Cycling (Road)": "NBDEaOhg0NtcnG60br2wqStuMErd+WzIyLjign/WZu8=",
+  Kayaking: "lpO3ITpYHYUTpurgBfCU4+b1VFKXSybxDHmxtTcctKc=",
+  "Mountain Biking": "qBoUTmPas3r1cosXWtRGjHBGfFCoHR49boSTUv2Jo88=",
+  "Mountain Sports": "uReIWxXU2qjhrBU66mTQgnId1FGjCy9H2VProk+xyQk=",
+  "Stand Up Paddleboarding (SUP)": "Wg3hY3TnQANxXrufiA7ucgOgcBDW6DVjneDLeI+urEE=",
+  Surfing: "u0T8evlaYze+apskNR9Bj+b4nyNfjl04bIn/urNiTdM=",
+  Tennis: "F49SXaZVkGkyzFhSYvEZxK5GXX4CqEZt9zcYToRjA1c=",
+  Walking: "hYgu8Lu7JVPE1sSP9JooUn7/PvSV9SQhwg8IzkQcTFE=",
+  Windsurfing: "szh6ZQ5FDPeshx6gjyn980sJeAk/oswNlaOrSPT9zgg=",
+  Running: "cLYnB3coyuWm6RGawhBT1vjQGu1iZTvjXIM8v8jbIjA=",
 };
 
 function normalizePhoneNumber(phoneNumber: string) {
