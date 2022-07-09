@@ -1,6 +1,6 @@
 import { DEBUG, DRY_RUN } from "./env.js";
 import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
-import * as signal from "./signal.js";
+import Signal, { SIGNAL_USER } from "./Signal.js";
 
 const ACTIVITIES_ENABLED: MyClubhouseActivity[] = [];
 
@@ -25,6 +25,9 @@ function normalizePhoneNumber(phoneNumber: string) {
   phoneNumber = phoneNumber.replace(/\s+/g, ""); // no whitespace
 
   // TODO: properly clean country code of phone numbers
+  if (phoneNumber.startsWith("7")) {
+    phoneNumber = "0" + phoneNumber;
+  }
   if (phoneNumber.startsWith("0")) {
     phoneNumber = phoneNumber.replace(/^0/, "+44");
   }
@@ -36,13 +39,13 @@ function userPhoneNumber(user: MyClubhouseUser) {
   return number ? normalizePhoneNumber(number) : null;
 }
 
-function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyClubhouseUser[]) {
+async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyClubhouseUser[]) {
   console.log(`👯 "${groupName}" - ${expectedUsers.length} member(s)`);
   DEBUG && console.log(expectedUsers.map((user) => [user.Forename + " " + user.Surname, userPhoneNumber(user)]));
 
   const groupId = SIGNAL_GROUP_IDS[groupName];
 
-  const existingGroup = signal.listGroups().find(({ id }) => id === groupId);
+  const existingGroup = (await signal.listGroups()).find(({ id }) => id === groupId);
   if (!existingGroup) {
     throw new Error(`Group ${groupId} does not exist`);
   }
@@ -51,15 +54,15 @@ function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyC
   if (existingGroup.permissionAddMember !== "ONLY_ADMINS" || existingGroup.permissionEditDetails !== "ONLY_ADMINS") {
     console.log(`Updating group permissions for "${groupName}" (${groupId})`);
     !DRY_RUN &&
-      signal.setGroupPermissions(groupId, {
-        "add-member": "only-admins",
-        "edit-details": "only-admins",
-      });
+      (await signal.setGroupPermissions(groupId, {
+        setPermissionAddMember: "only-admins",
+        setPermissionEditDetails: "only-admins",
+      }));
   }
 
   // Set group members
   const expectedNumbers = expectedUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
-  const expectedNumbersSet = new Set([signal.USER, ...expectedNumbers]);
+  const expectedNumbersSet = new Set([SIGNAL_USER, ...expectedNumbers]);
   const existingNumbers = new Set(
     [...existingGroup.admins, ...existingGroup.members, ...existingGroup.pendingMembers].map((member) => member.number)
   );
@@ -70,12 +73,12 @@ function setupGroup(groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyC
 
   if (oldNumbers.length > 0) {
     console.log(`Removing old numbers from group "${groupName}" (${groupId})`, DEBUG ? oldNumbers : oldNumbers.length);
-    !DRY_RUN && signal.removeNumbersFromGroup(groupId, oldNumbers);
+    !DRY_RUN && (await signal.removeNumbersFromGroup(groupId, oldNumbers));
   }
 
   if (newNumbers.length > 0) {
     console.log(`Adding new numbers to group "${groupName}" (${groupId})`, DEBUG ? newNumbers : newNumbers.length);
-    !DRY_RUN && signal.addNumbersToGroup(groupId, newNumbers);
+    !DRY_RUN && (await signal.addNumbersToGroup(groupId, newNumbers));
   }
 }
 
@@ -84,7 +87,7 @@ async function main() {
   DRY_RUN && console.log("🧪 Dry-run mode, not making any changes.");
   (DEBUG || DRY_RUN) && console.log("");
 
-  signal.receiveMessages();
+  const signal = new Signal();
 
   const users = await getActiveUsers();
 
@@ -92,7 +95,7 @@ async function main() {
     const committeeUsers = users.filter((user) =>
       user.Roles?.some((role) => role.Name === "BEC Committee Member" || role.Name === "BEC Committee Monitor")
     );
-    setupGroup("Committee", committeeUsers);
+    await setupGroup(signal, "Committee", committeeUsers);
   }
 
   const activityUsers = ACTIVITIES_ENABLED.map(
@@ -106,8 +109,10 @@ async function main() {
   );
 
   for (const [activityName, users] of activityUsers) {
-    setupGroup(activityName, users);
+    await setupGroup(signal, activityName, users);
   }
+
+  signal.close();
 }
 
 main();
