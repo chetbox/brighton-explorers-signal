@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams, execSync, spawn } from "child_process";
 import { DEBUG } from "./env.js";
 import { JSONRPCClient } from "json-rpc-2.0";
 import * as readline from "readline";
+import EventEmitter from "events";
 
 export interface SignalMember {
   number: string | null;
@@ -32,6 +33,38 @@ export interface SignalGroup {
   groupInviteLink: string | null;
 }
 
+export interface SignalTypingMessage {
+  action: "STARTED";
+  timestamp: number; // milliseconds
+  groupId?: string;
+}
+
+export interface SignalDataMessage {
+  timestamp: number; // milliseconds
+  message: string;
+  expiresInSeconds: number;
+  viewOnce: boolean;
+  groupInfo?: {
+    groupId: string;
+    type: "DELIVER";
+  };
+}
+
+export interface SignalMessageReceived {
+  envelope: {
+    source: string;
+    sourceNumber: string;
+    sourceUuid: string;
+    sourceName: string;
+    sourceDevice: number;
+    timestamp: number; // milliseconds
+    dataMessage?: SignalDataMessage;
+    typingMessage?: SignalTypingMessage;
+  };
+  account: string;
+  subscription: number;
+}
+
 const SIGNAL_CLI_DATA_DIR = "./.signal-cli-data";
 
 export const SIGNAL_USER = process.env.SIGNAL_USER;
@@ -48,6 +81,7 @@ const SIGNAL_CLI_ARGS = ["--config", SIGNAL_CLI_DATA_DIR, "-u", SIGNAL_USER];
 export default class SignalCli {
   private process: ChildProcessWithoutNullStreams;
   private rpcClient: JSONRPCClient;
+  private eventEmitter = new EventEmitter();
 
   constructor() {
     this.process = spawn(SIGNAL_CLI, [...SIGNAL_CLI_ARGS, "jsonRpc"]);
@@ -63,10 +97,22 @@ export default class SignalCli {
       const response = JSON.parse(responseStr);
       DEBUG && console.log("signal-cli response", response);
       this.rpcClient.receive(response);
+      if (response.method === "receive") {
+        this.eventEmitter.emit("receive", response.params);
+      }
     });
   }
 
+  public addListener(eventName: "receive", listener: (message: SignalMessageReceived) => void) {
+    this.eventEmitter.addListener(eventName, listener);
+  }
+
+  public removeListener(eventName: "receive", listener: (message: SignalMessageReceived) => void) {
+    this.eventEmitter.removeListener(eventName, listener);
+  }
+
   public close() {
+    this.eventEmitter.removeAllListeners();
     this.process.kill();
   }
 
@@ -97,6 +143,10 @@ export default class SignalCli {
     return (await this.rpcClient.request("updateGroup", { groupId, ...permissions })) as SignalGroup[];
   }
 
+  public async sendReceipt(number: string, targetTimestamp: number, type: "read" | "viewed" = "read") {
+    return await this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type });
+  }
+
   public async createGroup(name: string, adminNumbers: string[]) {
     const validNumbers = await this.filterSignalNumbers(adminNumbers);
 
@@ -111,17 +161,6 @@ export default class SignalCli {
       admin: validNumbers,
     })) as SignalGroup[];
   }
-
-  // public async makeGroupAdmin(name: string, numbers: string[]) {
-  //   const validNumbers = await this.filterSignalNumbers(numbers);
-
-  //   if (validNumbers.length === 0) {
-  //     console.warn(`No valid numbers to add to new group "${name}"`);
-  //     return;
-  //   }
-
-  //   return (await this.rpcClient.request("updateGroup", { name, members: validNumbers })) as SignalGroup[];
-  // }
 
   public async addNumbersToGroup(groupId: string, numbers: string[]) {
     // TODO: warn when a user is not a Signal user
