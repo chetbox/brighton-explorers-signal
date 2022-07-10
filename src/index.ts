@@ -145,6 +145,9 @@ async function main() {
     await setupGroup(signal, activityName, users);
   }
 
+  // Allow some time to handle received messages
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   signal.close();
 }
 
