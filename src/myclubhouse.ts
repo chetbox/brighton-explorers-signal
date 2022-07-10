@@ -58,6 +58,16 @@ export interface MyClubhouseUser {
 
   Attributes: {
     Activities: MyClubhouseActivity[] | null;
+
+    /**
+     * Date SUP induction passed as UK date string e.g. '02/07/2021'
+     */
+    "SUP induction"?: string;
+
+    /**
+     * Date Kayaking induction passed as UK date string e.g. '02/07/2021'
+     */
+    "Kayaking induction"?: string;
   };
 }
 
