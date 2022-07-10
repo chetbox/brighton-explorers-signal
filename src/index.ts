@@ -100,6 +100,27 @@ async function main() {
 
   const signal = new Signal();
 
+  // Send read receipts for any messages received
+
+  signal.addListener("receive", async (message) => {
+    if (message.envelope.dataMessage) {
+      const { timestamp, groupInfo } = message.envelope.dataMessage;
+      if (groupInfo) {
+        const group = (await signal.listGroups()).find(({ id }) => id === groupInfo.groupId);
+        if (group) {
+          const numbers = group.members
+            .map(({ number }) => number)
+            .filter((number): number is string => Boolean(number));
+          await Promise.all(numbers.map((number) => signal.sendReceipt(number, timestamp)));
+        } else {
+          console.warn(`Cannot send read receipt to group ${groupInfo.groupId}: Group not found`);
+        }
+      } else {
+        await signal.sendReceipt(message.envelope.sourceNumber, timestamp);
+      }
+    }
+  });
+
   const users = await getActiveUsers();
   console.log(`${users.length} active members`);
 
