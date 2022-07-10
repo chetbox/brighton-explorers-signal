@@ -28,10 +28,14 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zx
       - if: github.ref == 'refs/heads/main'
+        run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - if: github.ref == 'refs/heads/main'
         uses: actions/cache@v3
         with:
           path: .signal-cli-data
-          key: signal-cli-data
+          key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
+          restore-keys: |
+            signal-cli-data-
       - if: github.ref == 'refs/heads/main'
         run: yarn start
         env:
