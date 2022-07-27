@@ -138,18 +138,11 @@ async function main() {
     await setupGroup(signal, "Committee", committeeUsers);
   }
 
-  const activityUsers = ACTIVITIES_ENABLED.map(
-    (activityName) =>
-      [
-        activityName,
-        users.filter((user) =>
-          user.Attributes.Activities?.some((activityPreference) => activityPreference === activityName)
-        ),
-      ] as const
-  );
-
-  for (const [activityName, users] of activityUsers) {
-    await setupGroup(signal, activityName, users);
+  for (const activityName of ACTIVITIES_ENABLED) {
+    const activityUsers = users.filter((user) =>
+      user.Attributes.Activities?.some((activityPreference) => activityPreference === activityName)
+    );
+    await setupGroup(signal, activityName, activityUsers);
   }
 
   // Allow some time to handle received messages
