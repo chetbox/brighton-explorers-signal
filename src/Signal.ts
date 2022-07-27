@@ -72,9 +72,9 @@ if (!SIGNAL_USER) {
   throw new Error("SIGNAL_USER not set.");
 }
 
-let SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
+const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
 if (!SIGNAL_CLI) {
-  throw new Error("signal-cli no found. Set SIGNAL_CLI add signal-cli to PATH.");
+  throw new Error("signal-cli not found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
 const SIGNAL_CLI_ARGS = ["--config", SIGNAL_CLI_DATA_DIR, "-u", SIGNAL_USER];
 
