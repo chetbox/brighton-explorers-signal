@@ -123,7 +123,7 @@ async function main() {
           console.warn(`Cannot send read receipt to group ${groupInfo.groupId}: Group not found`);
         }
       } else {
-        await signal.sendReceipt(message.envelope.sourceNumber, timestamp);
+        !DRY_RUN && (await signal.sendReceipt(message.envelope.sourceNumber, timestamp));
       }
     }
   });
