@@ -32,9 +32,16 @@ const SIGNAL_GROUP_IDS: Readonly<
 function normalizePhoneNumber(phoneNumber: string) {
   phoneNumber = phoneNumber.replace(/\s+/g, ""); // no whitespace
 
+  if (phoneNumber === "0") {
+    return "";
+  }
+
   // TODO: properly clean country code of phone numbers
   if (phoneNumber.startsWith("7")) {
     phoneNumber = "0" + phoneNumber;
+  }
+  if (phoneNumber.startsWith("44")) {
+    phoneNumber = "+" + phoneNumber;
   }
   if (phoneNumber.startsWith("0")) {
     phoneNumber = phoneNumber.replace(/^0/, "+44");
