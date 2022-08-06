@@ -2,7 +2,7 @@ name: Build and run
 
 on:
   schedule:
-    - cron: "23,53 * * * *" # Every 30 mins
+    - cron: "23 * * * *" # Every 30 mins
   push:
     branches: [main]
   pull_request:
