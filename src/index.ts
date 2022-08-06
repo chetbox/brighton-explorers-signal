@@ -82,7 +82,12 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
     .filter((number): number is string => Boolean(number));
   const expectedNumbersSet = new Set([SIGNAL_USER, ...expectedNumbers]);
   const existingNumbers = new Set(
-    [...existingGroup.admins, ...existingGroup.members, ...existingGroup.pendingMembers].map((member) => member.number)
+    [
+      ...existingGroup.admins,
+      ...existingGroup.members,
+      ...existingGroup.pendingMembers,
+      ...existingGroup.requestingMembers,
+    ].map((member) => member.number)
   );
   const newNumbers = expectedNumbers.filter((number) => !existingNumbers.has(number));
   const oldNumbers = [...existingNumbers].filter(
