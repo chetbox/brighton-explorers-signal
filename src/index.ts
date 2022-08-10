@@ -80,7 +80,10 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
     .filter((user) => (group.allowUser ?? (() => true))(user))
     .map(userPhoneNumber)
     .filter((number): number is string => Boolean(number));
-  const expectedNumbersSet = new Set([SIGNAL_USER, ...expectedNumbers]);
+  const adminNumbers = existingGroup.admins
+    .map(({ number }) => number)
+    .filter((number): number is string => Boolean(number));
+  const expectedNumbersSet = new Set([SIGNAL_USER, ...adminNumbers, ...expectedNumbers]);
   const existingNumbers = new Set(
     [
       ...existingGroup.admins,
