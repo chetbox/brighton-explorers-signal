@@ -78,6 +78,8 @@ if (!SIGNAL_CLI) {
 }
 const SIGNAL_CLI_ARGS = ["--config", SIGNAL_CLI_DATA_DIR, "-u", SIGNAL_USER, "--trust-new-identities", "always"];
 
+const SIGTERM = 143;
+
 export default class SignalCli {
   private process: ChildProcessWithoutNullStreams;
   private rpcClient: JSONRPCClient;
@@ -85,6 +87,17 @@ export default class SignalCli {
 
   constructor() {
     this.process = spawn(SIGNAL_CLI, [...SIGNAL_CLI_ARGS, "jsonRpc"]);
+
+    this.process.addListener("exit", (code) => {
+      if (code && code !== SIGTERM) {
+        console.error(`signal-cli exited with code ${code}`);
+        process.exit(code);
+      }
+    });
+
+    this.process.addListener("error", (error) => {
+      throw error;
+    });
 
     this.rpcClient = new JSONRPCClient(async (request) => {
       DEBUG && console.log("signal-cli request", request);
@@ -113,7 +126,7 @@ export default class SignalCli {
 
   public close() {
     this.eventEmitter.removeAllListeners();
-    this.process.kill();
+    this.process.kill(); // Causes SIGTERM
   }
 
   public async getUserStatus(...numbers: string[]) {
