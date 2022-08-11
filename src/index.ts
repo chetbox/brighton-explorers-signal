@@ -103,8 +103,17 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
   }
 
   if (newNumbers.length > 0) {
-    console.log(`Adding new numbers to group "${groupName}" (${group.id})`, DEBUG ? newNumbers : newNumbers.length);
-    !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbers));
+    const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
+    console.log(
+      `Adding new numbers to group "${groupName}" (${group.id})`,
+      DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length
+    );
+    !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
+
+    const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
+    if (newNumbersNotUsingSignalCount) {
+      console.log(`Skipped ${newNumbersNotUsingSignalCount} numbers who are not registered on Signal`);
+    }
   }
 }
 
