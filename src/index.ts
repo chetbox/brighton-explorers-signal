@@ -2,7 +2,7 @@ import { DEBUG, DRY_RUN } from "./env.js";
 import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import Signal, { SIGNAL_USER } from "./Signal.js";
 
-const ACTIVITIES_ENABLED: MyClubhouseActivity[] = ["Running", "Surfing", "Mountain Biking"];
+const ACTIVITIES_ENABLED: MyClubhouseActivity[] = ["Running", "Surfing", "Mountain Biking", "Climbing"];
 
 const SIGNAL_GROUP_IDS: Readonly<
   Record<"Committee" | MyClubhouseActivity, { id: string; allowUser?: (user: MyClubhouseUser) => boolean }>
