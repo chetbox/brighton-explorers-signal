@@ -12,6 +12,7 @@ jobs:
   build-and-run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency: signal-cli
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
