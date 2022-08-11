@@ -66,13 +66,21 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
   }
 
   // Set group permissions
-  if (existingGroup.permissionAddMember !== "ONLY_ADMINS" || existingGroup.permissionEditDetails !== "ONLY_ADMINS") {
+  if (
+    existingGroup.permissionAddMember !== "ONLY_ADMINS" ||
+    existingGroup.permissionEditDetails !== "ONLY_ADMINS" ||
+    !existingGroup.groupInviteLink
+  ) {
     console.log(`Updating group permissions for "${groupName}" (${group.id})`);
-    !DRY_RUN &&
-      (await signal.setGroupPermissions(group.id, {
-        setPermissionAddMember: "only-admins",
-        setPermissionEditDetails: "only-admins",
-      }));
+    if (!DRY_RUN) {
+      await signal.setGroupPermissions(group.id, {
+        permissions: {
+          setPermissionAddMember: "only-admins",
+          setPermissionEditDetails: "only-admins",
+        },
+        link: "enabled-with-approval", // This seems to fix a problem where some users don't see an group invitation
+      });
+    }
   }
 
   // Set group members

@@ -16,6 +16,8 @@ export interface SignalMemberStatus extends SignalMember {
 
 export type SignalGroupPermission = "EVERY_MEMBER" | "ONLY_ADMINS";
 
+export type SignalGroupLinkState = "enabled" | "enabled-with-approval" | "disabled";
+
 export interface SignalGroup {
   id: string;
   name: string;
@@ -146,14 +148,17 @@ export default class SignalCli {
 
   public async setGroupPermissions(
     groupId: string,
-    permissions: Partial<
-      Record<
-        "setPermissionAddMember" | "setPermissionEditDetails" | "setPermissionSendMessages",
-        "every-member" | "only-admins"
-      >
-    >
+    options: {
+      permissions?: Partial<
+        Record<
+          "setPermissionAddMember" | "setPermissionEditDetails" | "setPermissionSendMessages",
+          "every-member" | "only-admins"
+        >
+      >;
+      link?: SignalGroupLinkState;
+    }
   ) {
-    return (await this.rpcClient.request("updateGroup", { groupId, ...permissions })) as SignalGroup[];
+    return (await this.rpcClient.request("updateGroup", { groupId, ...options })) as SignalGroup[];
   }
 
   public async sendReceipt(number: string, targetTimestamp: number, type: "read" | "viewed" = "read") {
