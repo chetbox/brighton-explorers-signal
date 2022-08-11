@@ -76,7 +76,7 @@ const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toStri
 if (!SIGNAL_CLI) {
   throw new Error("signal-cli not found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
-const SIGNAL_CLI_ARGS = ["--config", SIGNAL_CLI_DATA_DIR, "-u", SIGNAL_USER];
+const SIGNAL_CLI_ARGS = ["--config", SIGNAL_CLI_DATA_DIR, "-u", SIGNAL_USER, "--trust-new-identities", "always"];
 
 export default class SignalCli {
   private process: ChildProcessWithoutNullStreams;
