@@ -161,6 +161,10 @@ export default class SignalCli {
     return (await this.rpcClient.request("updateGroup", { groupId, ...options })) as SignalGroup[];
   }
 
+  public async resetGroupLink(groupId: string) {
+    return (await this.rpcClient.request("updateGroup", { groupId, resetLink: true })) as SignalGroup[];
+  }
+
   public async sendReceipt(number: string, targetTimestamp: number, type: "read" | "viewed" = "read") {
     return await this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type });
   }
