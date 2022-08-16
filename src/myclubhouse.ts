@@ -63,12 +63,17 @@ export interface MyClubhouseUser {
     /**
      * Date SUP induction passed as UK date string e.g. '02/07/2021'
      */
-    "SUP induction"?: string;
+    "SUP induction": string | null;
 
     /**
      * Date Kayaking induction passed as UK date string e.g. '02/07/2021'
      */
-    "Kayaking induction"?: string;
+    "Kayaking induction": string | null;
+
+    /**
+     * Date bar training was completed e.g. '02/07/2021'
+     */
+    "Bar trained": boolean | null;
   };
 }
 
