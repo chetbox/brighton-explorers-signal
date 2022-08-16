@@ -5,9 +5,17 @@ import Signal, { SIGNAL_USER } from "./Signal.js";
 const ACTIVITIES_ENABLED: MyClubhouseActivity[] = ["Running", "Surfing", "Mountain Biking", "Climbing", "Social"];
 
 const SIGNAL_GROUP_IDS: Readonly<
-  Record<"Committee" | MyClubhouseActivity, { id: string; allowUser?: (user: MyClubhouseUser) => boolean }>
+  Record<
+    "Committee" | "Bar Volunteers" | MyClubhouseActivity,
+    { id: string; allowUser?: (user: MyClubhouseUser) => boolean }
+  >
 > = {
   Committee: { id: "jkhJAZMMjA8eHDyrCDOC3d8D+L1DKhacSa0GF+UDyFM=" },
+  "Bar Volunteers": {
+    id: "FqB/Dx7wW8YqDoLMjWyadYN5ZKWVG/KwMX1/gngf2cQ=",
+    allowUser: (user) =>
+      Boolean(user.Attributes["Bar trained"]) && (user.Attributes.Activities ?? [])?.includes("Social"),
+  },
   Badminton: { id: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=" },
   Caving: { id: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=" },
   Climbing: { id: "w8AwJdbepA3L9uk0EfSUCV/B55aMb91Wk/QzFe1lJQ4=" },
