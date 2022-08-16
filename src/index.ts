@@ -2,40 +2,49 @@ import { DEBUG, DRY_RUN } from "./env.js";
 import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import Signal, { SIGNAL_USER } from "./Signal.js";
 
-const ACTIVITIES_ENABLED: MyClubhouseActivity[] = ["Running", "Surfing", "Mountain Biking", "Climbing", "Social"];
+type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
 
-const SIGNAL_GROUP_IDS: Readonly<
-  Record<
-    "Committee" | "Bar Volunteers" | MyClubhouseActivity,
-    { id: string; allowUser?: (user: MyClubhouseUser) => boolean }
-  >
+const GROUPS_ENABLED: SignalGroupName[] = ["Committee", "Running", "Surfing", "Mountain Biking", "Climbing", "Social"];
+
+function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
+  return (user.Attributes.Activities ?? [])?.some((activityPreference) => activityPreference === activityName);
+}
+
+const SIGNAL_GROUPS: Readonly<
+  Record<SignalGroupName, { id: string; allowUser: (user: MyClubhouseUser, groupName: SignalGroupName) => boolean }>
 > = {
-  Committee: { id: "jkhJAZMMjA8eHDyrCDOC3d8D+L1DKhacSa0GF+UDyFM=" },
+  Committee: {
+    id: "jkhJAZMMjA8eHDyrCDOC3d8D+L1DKhacSa0GF+UDyFM=",
+    allowUser: (user) =>
+      (user.Roles ?? []).some((role) => role.Name === "BEC Committee Member" || role.Name === "BEC Committee Monitor"),
+  },
   "Bar Volunteers": {
     id: "FqB/Dx7wW8YqDoLMjWyadYN5ZKWVG/KwMX1/gngf2cQ=",
     allowUser: (user) =>
       Boolean(user.Attributes["Bar trained"]) && (user.Attributes.Activities ?? [])?.includes("Social"),
   },
-  Badminton: { id: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=" },
-  Caving: { id: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=" },
-  Climbing: { id: "w8AwJdbepA3L9uk0EfSUCV/B55aMb91Wk/QzFe1lJQ4=" },
-  "Cycling (Road)": { id: "NBDEaOhg0NtcnG60br2wqStuMErd+WzIyLjign/WZu8=" },
+  Badminton: { id: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=", allowUser: userHasActivitySelected },
+  Caving: { id: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=", allowUser: userHasActivitySelected },
+  Climbing: { id: "w8AwJdbepA3L9uk0EfSUCV/B55aMb91Wk/QzFe1lJQ4=", allowUser: userHasActivitySelected },
+  "Cycling (Road)": { id: "NBDEaOhg0NtcnG60br2wqStuMErd+WzIyLjign/WZu8=", allowUser: userHasActivitySelected },
   Kayaking: {
     id: "lpO3ITpYHYUTpurgBfCU4+b1VFKXSybxDHmxtTcctKc=",
-    allowUser: (user) => Boolean(user.Attributes["Kayaking induction"]),
+    allowUser: (user, activityName) =>
+      userHasActivitySelected(user, activityName) && Boolean(user.Attributes["Kayaking induction"]),
   },
-  "Mountain Biking": { id: "qBoUTmPas3r1cosXWtRGjHBGfFCoHR49boSTUv2Jo88=" },
-  "Mountain Sports": { id: "uReIWxXU2qjhrBU66mTQgnId1FGjCy9H2VProk+xyQk=" },
+  "Mountain Biking": { id: "qBoUTmPas3r1cosXWtRGjHBGfFCoHR49boSTUv2Jo88=", allowUser: userHasActivitySelected },
+  "Mountain Sports": { id: "uReIWxXU2qjhrBU66mTQgnId1FGjCy9H2VProk+xyQk=", allowUser: userHasActivitySelected },
   "Stand Up Paddleboarding (SUP)": {
     id: "Wg3hY3TnQANxXrufiA7ucgOgcBDW6DVjneDLeI+urEE=",
-    allowUser: (user) => Boolean(user.Attributes["SUP induction"]),
+    allowUser: (user, activityName) =>
+      userHasActivitySelected(user, activityName) && Boolean(user.Attributes["SUP induction"]),
   },
-  Surfing: { id: "u0T8evlaYze+apskNR9Bj+b4nyNfjl04bIn/urNiTdM=" },
-  Tennis: { id: "F49SXaZVkGkyzFhSYvEZxK5GXX4CqEZt9zcYToRjA1c=" },
-  Walking: { id: "hYgu8Lu7JVPE1sSP9JooUn7/PvSV9SQhwg8IzkQcTFE=" },
-  Windsurfing: { id: "szh6ZQ5FDPeshx6gjyn980sJeAk/oswNlaOrSPT9zgg=" },
-  Running: { id: "cLYnB3coyuWm6RGawhBT1vjQGu1iZTvjXIM8v8jbIjA=" },
-  Social: { id: "2CHfRlRQFWrLlFapAsoGW30C+eEKt0+6kSFJYHVu1BM=" },
+  Surfing: { id: "u0T8evlaYze+apskNR9Bj+b4nyNfjl04bIn/urNiTdM=", allowUser: userHasActivitySelected },
+  Tennis: { id: "F49SXaZVkGkyzFhSYvEZxK5GXX4CqEZt9zcYToRjA1c=", allowUser: userHasActivitySelected },
+  Walking: { id: "hYgu8Lu7JVPE1sSP9JooUn7/PvSV9SQhwg8IzkQcTFE=", allowUser: userHasActivitySelected },
+  Windsurfing: { id: "szh6ZQ5FDPeshx6gjyn980sJeAk/oswNlaOrSPT9zgg=", allowUser: userHasActivitySelected },
+  Running: { id: "cLYnB3coyuWm6RGawhBT1vjQGu1iZTvjXIM8v8jbIjA=", allowUser: userHasActivitySelected },
+  Social: { id: "2CHfRlRQFWrLlFapAsoGW30C+eEKt0+6kSFJYHVu1BM=", allowUser: userHasActivitySelected },
 };
 
 function normalizePhoneNumber(phoneNumber: string) {
@@ -63,11 +72,11 @@ function userPhoneNumber(user: MyClubhouseUser) {
   return number ? normalizePhoneNumber(number) : null;
 }
 
-async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_IDS, expectedUsers: MyClubhouseUser[]) {
+async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS, expectedUsers: MyClubhouseUser[]) {
   console.log(`👯 "${groupName}" - ${expectedUsers.length} member(s)`);
   DEBUG && console.log(expectedUsers.map((user) => [user.Forename + " " + user.Surname, userPhoneNumber(user)]));
 
-  const group = SIGNAL_GROUP_IDS[groupName];
+  const group = SIGNAL_GROUPS[groupName];
 
   const existingGroup = (await signal.listGroups()).find(({ id }) => id === group.id);
   if (!existingGroup) {
@@ -93,10 +102,7 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
   }
 
   // Set group members
-  const expectedNumbers = expectedUsers
-    .filter((user) => (group.allowUser ?? (() => true))(user))
-    .map(userPhoneNumber)
-    .filter((number): number is string => Boolean(number));
+  const expectedNumbers = expectedUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
   const adminNumbers = existingGroup.admins
     .map(({ number }) => number)
     .filter((number): number is string => Boolean(number));
@@ -122,8 +128,9 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
   const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
   if (newNumbersUsingSignal.length > 0) {
     console.log(
-      `Adding new numbers to group "${groupName}" (${group.id})`,
-      DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length
+      `Adding ${DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length} new numbers to group "${groupName}" (${
+        group.id
+      })`
     );
 
     try {
@@ -173,18 +180,9 @@ async function main() {
   const users = await getActiveUsers();
   console.log(`${users.length} active members`);
 
-  {
-    const committeeUsers = users.filter((user) =>
-      user.Roles?.some((role) => role.Name === "BEC Committee Member" || role.Name === "BEC Committee Monitor")
-    );
-    await setupGroup(signal, "Committee", committeeUsers);
-  }
-
-  for (const activityName of ACTIVITIES_ENABLED) {
-    const activityUsers = users.filter((user) =>
-      user.Attributes.Activities?.some((activityPreference) => activityPreference === activityName)
-    );
-    await setupGroup(signal, activityName, activityUsers);
+  for (const groupName of GROUPS_ENABLED) {
+    const groupUsers = users.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
+    await setupGroup(signal, groupName, groupUsers);
   }
 
   // Allow some time to handle received messages
