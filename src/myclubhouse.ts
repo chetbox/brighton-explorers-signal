@@ -32,6 +32,7 @@ export const ALL_ACTIVITIES = [
   "Walking",
   "Windsurfing",
   "Running",
+  "Social",
 ] as const;
 
 export type MyClubhouseActivity = typeof ALL_ACTIVITIES[number];

@@ -27,6 +27,7 @@ const SIGNAL_GROUP_IDS: Readonly<
   Walking: { id: "hYgu8Lu7JVPE1sSP9JooUn7/PvSV9SQhwg8IzkQcTFE=" },
   Windsurfing: { id: "szh6ZQ5FDPeshx6gjyn980sJeAk/oswNlaOrSPT9zgg=" },
   Running: { id: "cLYnB3coyuWm6RGawhBT1vjQGu1iZTvjXIM8v8jbIjA=" },
+  Social: { id: "2CHfRlRQFWrLlFapAsoGW30C+eEKt0+6kSFJYHVu1BM=" },
 };
 
 function normalizePhoneNumber(phoneNumber: string) {
