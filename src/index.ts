@@ -110,8 +110,8 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
     !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, oldNumbers));
   }
 
-  if (newNumbers.length > 0) {
-    const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
+  const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
+  if (newNumbersUsingSignal.length > 0) {
     console.log(
       `Adding new numbers to group "${groupName}" (${group.id})`,
       DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length
@@ -126,11 +126,10 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUP_I
       !DRY_RUN && (await signal.resetGroupLink(group.id));
       !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
     }
-
-    const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
-    if (newNumbersNotUsingSignalCount) {
-      console.log(`Skipped ${newNumbersNotUsingSignalCount} numbers who are not registered on Signal`);
-    }
+  }
+  const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
+  if (newNumbersNotUsingSignalCount) {
+    console.log(`Skipped ${newNumbersNotUsingSignalCount} numbers who are not registered on Signal`);
   }
 }
 
