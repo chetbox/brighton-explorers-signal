@@ -4,7 +4,15 @@ import Signal, { SIGNAL_USER } from "./Signal.js";
 
 type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
 
-const GROUPS_ENABLED: SignalGroupName[] = ["Committee", "Running", "Surfing", "Mountain Biking", "Climbing", "Social"];
+const GROUPS_ENABLED: SignalGroupName[] = [
+  "Committee",
+  "Bar Volunteers",
+  "Running",
+  "Surfing",
+  "Mountain Biking",
+  "Climbing",
+  "Social",
+];
 
 function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
   return (user.Attributes.Activities ?? [])?.some((activityPreference) => activityPreference === activityName);
