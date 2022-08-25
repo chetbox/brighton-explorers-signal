@@ -1,5 +1,6 @@
 import { DEBUG, DRY_RUN } from "./env.js";
 import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
+import { normalizePhoneNumber } from "./phoneNumbers.js";
 import Signal, { SIGNAL_USER } from "./Signal.js";
 
 type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
@@ -57,26 +58,6 @@ const SIGNAL_GROUPS: Readonly<
   Running: { id: "cLYnB3coyuWm6RGawhBT1vjQGu1iZTvjXIM8v8jbIjA=", allowUser: userHasActivitySelected },
   Social: { id: "2CHfRlRQFWrLlFapAsoGW30C+eEKt0+6kSFJYHVu1BM=", allowUser: userHasActivitySelected },
 };
-
-function normalizePhoneNumber(phoneNumber: string) {
-  phoneNumber = phoneNumber.replace(/\s+/g, ""); // no whitespace
-
-  if (phoneNumber === "0") {
-    return "";
-  }
-
-  // TODO: properly clean country code of phone numbers
-  if (phoneNumber.startsWith("7")) {
-    phoneNumber = "0" + phoneNumber;
-  }
-  if (phoneNumber.startsWith("44")) {
-    phoneNumber = "+" + phoneNumber;
-  }
-  if (phoneNumber.startsWith("0")) {
-    phoneNumber = phoneNumber.replace(/^0/, "+44");
-  }
-  return phoneNumber;
-}
 
 function userPhoneNumber(user: MyClubhouseUser) {
   const number = user.MobileTelephone || user.HomeTelephone || user.BusinessTelephone;
