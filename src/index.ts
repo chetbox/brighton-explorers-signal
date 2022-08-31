@@ -17,6 +17,7 @@ const GROUPS_ENABLED: SignalGroupName[] = [
   "Cycling (Road)",
   "Mountain Sports",
   "Stand Up Paddleboarding (SUP)",
+  "Caving",
 ];
 
 function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
