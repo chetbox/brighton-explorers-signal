@@ -135,7 +135,11 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
       console.log("Trying again one-by-one");
 
       for (const number of newNumbersUsingSignal) {
-        !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
+        try {
+          !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
+        } catch (error) {
+          console.warn(`⚠️ Failed to add ${DEBUG ? number : "number"} to group ${group.id}`, error);
+        }
       }
     }
   }
