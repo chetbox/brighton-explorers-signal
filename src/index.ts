@@ -132,10 +132,11 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
       !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
     } catch (error) {
       console.warn("Failed to add numbers to group", error);
-      console.log("Trying again after resetting group link");
+      console.log("Trying again one-by-one");
 
-      !DRY_RUN && (await signal.resetGroupLink(group.id));
-      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
+      for (const number of newNumbersUsingSignal) {
+        !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
+      }
     }
   }
   const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
