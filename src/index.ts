@@ -1,27 +1,11 @@
 import { DEBUG, DRY_RUN } from "./env.js";
-import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
+import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import { normalizePhoneNumber } from "./phoneNumbers.js";
 import Signal, { SIGNAL_USER } from "./Signal.js";
 
 type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
 
-const GROUPS_ENABLED: SignalGroupName[] = [
-  "Committee",
-  "Bar Volunteers",
-  "Running",
-  "Surfing",
-  "Mountain Biking",
-  "Climbing",
-  "Social",
-  "Tennis",
-  "Cycling (Road)",
-  "Mountain Sports",
-  "Stand Up Paddleboarding (SUP)",
-  "Caving",
-  "Walking",
-  "Kayaking",
-  "Windsurfing",
-];
+const GROUPS_ENABLED: SignalGroupName[] = ["Committee", "Bar Volunteers", ...ALL_ACTIVITIES];
 
 function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
   return (user.Attributes.Activities ?? [])?.some((activityPreference) => activityPreference === activityName);
