@@ -153,7 +153,18 @@ async function main() {
           const numbers = group.members
             .map(({ number }) => number)
             .filter((number): number is string => Boolean(number));
-          await Promise.all(numbers.map((number) => signal.sendReceipt(number, timestamp)));
+          await Promise.all(
+            numbers.map(async (number) => {
+              try {
+                await signal.sendReceipt(number, timestamp);
+              } catch (error) {
+                console.error(
+                  `Could not send read receipt to ${DEBUG ? number : "number"} in group ${groupInfo.groupId}:`,
+                  error
+                );
+              }
+            })
+          );
         } else {
           console.warn(`Cannot send read receipt to group ${groupInfo.groupId}: Group not found`);
         }
