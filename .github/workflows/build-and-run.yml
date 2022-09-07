@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "23 * * * *" # Every 30 mins
   push:
-    branches: [main]
+    branches: [main, rate-limit-workaround]
   pull_request:
     branches: [main]
 
@@ -22,26 +22,26 @@ jobs:
       - run: yarn test
       - run: yarn build
       # From here we only run if on main branch
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/rate-limit-workaround'
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: "17"
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/rate-limit-workaround'
         run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zx
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/rate-limit-workaround'
         run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/rate-limit-workaround'
         uses: actions/cache@v3
         with:
           path: .signal-cli-data
           key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
           restore-keys: |
             signal-cli-data-
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/rate-limit-workaround'
         run: yarn start
         env:
-          DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
+          DRY_RUN: "true"
           ACTIVITIES_ENABLED: "false"
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
           MYCLUBHOUSE_ACCESS_TOKEN: ${{ secrets.MYCLUBHOUSE_ACCESS_TOKEN }}
