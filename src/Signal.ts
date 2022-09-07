@@ -139,7 +139,7 @@ export default class SignalCli {
     return (await this.rpcClient.request("listGroups")) as SignalGroup[];
   }
 
-  public async filterSignalNumbers(numbers: string[]) {
+  private async filterSignalNumbers(numbers: string[]) {
     return (await this.getUserStatus(...numbers))
       .filter((user) => user.isRegistered)
       .map((user) => user.number)
@@ -169,8 +169,8 @@ export default class SignalCli {
     return await this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type });
   }
 
-  public async createGroup(name: string, adminNumbers: string[]) {
-    const validNumbers = await this.filterSignalNumbers(adminNumbers);
+  public async createGroup(name: string, adminNumbers: string[], checkForSignalNumber: boolean = true) {
+    const validNumbers = checkForSignalNumber ? await this.filterSignalNumbers(adminNumbers) : adminNumbers;
 
     if (validNumbers.length === 0) {
       console.warn(`No valid numbers to add to new group "${name}"`);
@@ -184,10 +184,8 @@ export default class SignalCli {
     })) as SignalGroup[];
   }
 
-  public async addNumbersToGroup(groupId: string, numbers: string[]) {
-    // TODO: warn when a user is not a Signal user
-
-    const validNumbers = await this.filterSignalNumbers(numbers);
+  public async addNumbersToGroup(groupId: string, numbers: string[], checkForSignalNumber: boolean = true) {
+    const validNumbers = checkForSignalNumber ? await this.filterSignalNumbers(numbers) : numbers;
 
     if (validNumbers.length === 0) {
       console.warn(`No valid numbers to add to group ${groupId}`);
@@ -197,10 +195,8 @@ export default class SignalCli {
     return (await this.rpcClient.request("updateGroup", { groupId, members: validNumbers })) as SignalGroup[];
   }
 
-  public async removeNumbersFromGroup(groupId: string, numbers: string[]) {
-    // TODO: warn when a user is not a Signal user
-
-    const validNumbers = await this.filterSignalNumbers(numbers);
+  public async removeNumbersFromGroup(groupId: string, numbers: string[], checkForSignalNumber: boolean = true) {
+    const validNumbers = checkForSignalNumber ? await this.filterSignalNumbers(numbers) : numbers;
 
     if (validNumbers.length === 0) {
       console.warn(`No valid numbers to add to group ${groupId}`);

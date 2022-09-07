@@ -53,9 +53,8 @@ function userPhoneNumber(user: MyClubhouseUser) {
   return number ? normalizePhoneNumber(number) : null;
 }
 
-async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS, expectedUsers: MyClubhouseUser[]) {
-  console.log(`👯 "${groupName}" - ${expectedUsers.length} member(s)`);
-  DEBUG && console.log(expectedUsers.map((user) => [user.Forename + " " + user.Surname, userPhoneNumber(user)]));
+async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS, expectedNumbers: string[]) {
+  console.log(`👯 "${groupName}" - ${expectedNumbers.length} member(s)`);
 
   const group = SIGNAL_GROUPS[groupName];
 
@@ -83,7 +82,6 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
   }
 
   // Set group members
-  const expectedNumbers = expectedUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
   const adminNumbers = existingGroup.admins
     .map(({ number }) => number)
     .filter((number): number is string => Boolean(number));
@@ -103,35 +101,26 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
 
   if (oldNumbers.length > 0) {
     console.log(`Removing old numbers from group "${groupName}" (${group.id})`, DEBUG ? oldNumbers : oldNumbers.length);
-    !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, oldNumbers));
+    !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, oldNumbers, false));
   }
 
-  const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
-  if (newNumbersUsingSignal.length > 0) {
-    console.log(
-      `Adding ${DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length} new numbers to group "${groupName}" (${
-        group.id
-      })`
-    );
+  if (newNumbers.length > 0) {
+    console.log(`Adding ${DEBUG ? newNumbers : newNumbers.length} new numbers to group "${groupName}" (${group.id})`);
 
     try {
-      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
+      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbers, false));
     } catch (error) {
       console.warn("Failed to add numbers to group", error);
       console.log("Trying again one-by-one");
 
-      for (const number of newNumbersUsingSignal) {
+      for (const number of newNumbers) {
         try {
-          !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
+          !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number], false));
         } catch (error) {
           console.warn(`⚠️ Failed to add ${DEBUG ? number : "number"} to group ${group.id}`, error);
         }
       }
     }
-  }
-  const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
-  if (newNumbersNotUsingSignalCount) {
-    console.log(`Skipped ${newNumbersNotUsingSignalCount} numbers who are not registered on Signal`);
   }
 }
 
@@ -174,16 +163,29 @@ async function main() {
     }
   });
 
-  const users = await getActiveUsers();
-  console.log(`${users.length} active members`);
-
-  for (const groupName of GROUPS_ENABLED) {
-    const groupUsers = users.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
-    await setupGroup(signal, groupName, groupUsers);
-  }
-
   // Allow some time to handle received messages
   await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  const users = await getActiveUsers();
+  const userNumbers = users.map(userPhoneNumber).map((number) => (number ? normalizePhoneNumber(number) : ""));
+
+  // Only deal with number registered on Signal
+  const signalNumbers = (await signal.getUserStatus(...userNumbers)).map((signalUser) =>
+    signalUser.isRegistered && signalUser.number ? signalUser.number : null
+  );
+
+  console.log(
+    `${users.length} active members - ${signalNumbers.filter(Boolean).length} (${Math.round(
+      (signalNumbers.filter(Boolean).length / users.length) * 100
+    )}%) using Signal`
+  );
+
+  for (const groupName of GROUPS_ENABLED) {
+    const groupNumbers = users
+      .map((user, userIndex) => (SIGNAL_GROUPS[groupName].allowUser(user, groupName) ? signalNumbers[userIndex] : null))
+      .filter((number): number is string => Boolean(number));
+    await setupGroup(signal, groupName, groupNumbers);
+  }
 
   signal.close();
 }
