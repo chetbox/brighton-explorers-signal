@@ -139,13 +139,6 @@ export default class SignalCli {
     return (await this.rpcClient.request("listGroups")) as SignalGroup[];
   }
 
-  public async filterSignalNumbers(numbers: string[]) {
-    return (await this.getUserStatus(...numbers))
-      .filter((user) => user.isRegistered)
-      .map((user) => user.number)
-      .filter((number): number is string => Boolean(number));
-  }
-
   public async setGroupPermissions(
     groupId: string,
     options: {
@@ -170,43 +163,37 @@ export default class SignalCli {
   }
 
   public async createGroup(name: string, adminNumbers: string[]) {
-    const validNumbers = await this.filterSignalNumbers(adminNumbers);
-
-    if (validNumbers.length === 0) {
-      console.warn(`No valid numbers to add to new group "${name}"`);
+    if (adminNumbers.length === 0) {
+      console.warn(`No numbers to add to new group "${name}"`);
       return;
     }
 
     return (await this.rpcClient.request("updateGroup", {
       name,
-      members: validNumbers,
-      admin: validNumbers,
+      members: adminNumbers,
+      admin: adminNumbers,
     })) as SignalGroup[];
   }
 
-  public async addNumbersToGroup(groupId: string, numbers: string[]) {
-    // TODO: warn when a user is not a Signal user
-
-    const validNumbers = await this.filterSignalNumbers(numbers);
-
-    if (validNumbers.length === 0) {
-      console.warn(`No valid numbers to add to group ${groupId}`);
+  public async addNumbersToGroup(groupId: string, members: string[]) {
+    if (members.length === 0) {
+      console.warn(`No numbers to add to group ${groupId}`);
       return;
     }
 
-    return (await this.rpcClient.request("updateGroup", { groupId, members: validNumbers })) as SignalGroup[];
+    return (await this.rpcClient.request("updateGroup", { groupId, members })) as SignalGroup[];
   }
 
-  public async removeNumbersFromGroup(groupId: string, numbers: string[]) {
-    // TODO: warn when a user is not a Signal user
-
-    const validNumbers = await this.filterSignalNumbers(numbers);
-
-    if (validNumbers.length === 0) {
-      console.warn(`No valid numbers to add to group ${groupId}`);
+  public async removeNumbersFromGroup(groupId: string, removeMembers: string[]) {
+    if (removeMembers.length === 0) {
+      console.warn(`No numbers to remove from group ${groupId}`);
       return;
     }
 
-    return (await this.rpcClient.request("updateGroup", { groupId, removeMembers: validNumbers })) as SignalGroup[];
+    return (await this.rpcClient.request("updateGroup", { groupId, removeMembers })) as SignalGroup[];
   }
+}
+
+export function getSignalNumber(user: SignalMemberStatus) {
+  return user.isRegistered ? user.number : null;
 }

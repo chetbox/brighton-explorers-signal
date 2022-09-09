@@ -1,7 +1,7 @@
 import { DEBUG, DRY_RUN } from "./env.js";
 import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import { normalizePhoneNumber } from "./phoneNumbers.js";
-import Signal, { SIGNAL_USER } from "./Signal.js";
+import Signal, { getSignalNumber, SIGNAL_USER } from "./Signal.js";
 
 type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
 
@@ -53,9 +53,8 @@ function userPhoneNumber(user: MyClubhouseUser) {
   return number ? normalizePhoneNumber(number) : null;
 }
 
-async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS, expectedUsers: MyClubhouseUser[]) {
-  console.log(`👯 "${groupName}" - ${expectedUsers.length} member(s)`);
-  DEBUG && console.log(expectedUsers.map((user) => [user.Forename + " " + user.Surname, userPhoneNumber(user)]));
+async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS, expectedNumbers: string[]) {
+  console.log(`👯 "${groupName}" - ${expectedNumbers.length} member(s)`);
 
   const group = SIGNAL_GROUPS[groupName];
 
@@ -83,7 +82,6 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
   }
 
   // Set group members
-  const expectedNumbers = expectedUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
   const adminNumbers = existingGroup.admins
     .map(({ number }) => number)
     .filter((number): number is string => Boolean(number));
@@ -106,21 +104,16 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
     !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, oldNumbers));
   }
 
-  const newNumbersUsingSignal = await signal.filterSignalNumbers(newNumbers);
-  if (newNumbersUsingSignal.length > 0) {
-    console.log(
-      `Adding ${DEBUG ? newNumbersUsingSignal : newNumbersUsingSignal.length} new numbers to group "${groupName}" (${
-        group.id
-      })`
-    );
+  if (newNumbers.length > 0) {
+    console.log(`Adding ${DEBUG ? newNumbers : newNumbers.length} new numbers to group "${groupName}" (${group.id})`);
 
     try {
-      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbersUsingSignal));
+      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbers));
     } catch (error) {
       console.warn("Failed to add numbers to group", error);
       console.log("Trying again one-by-one");
 
-      for (const number of newNumbersUsingSignal) {
+      for (const number of newNumbers) {
         try {
           !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
         } catch (error) {
@@ -128,10 +121,6 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
         }
       }
     }
-  }
-  const newNumbersNotUsingSignalCount = newNumbers.length - newNumbersUsingSignal.length;
-  if (newNumbersNotUsingSignalCount) {
-    console.log(`Skipped ${newNumbersNotUsingSignalCount} numbers who are not registered on Signal`);
   }
 }
 
@@ -175,11 +164,33 @@ async function main() {
   });
 
   const users = await getActiveUsers();
-  console.log(`${users.length} active members`);
+
+  const userNumbers = users.map((user) => {
+    const phoneNumber = userPhoneNumber(user);
+    return phoneNumber ? normalizePhoneNumber(phoneNumber) : null;
+  });
+
+  const signalUsers = await signal.getUserStatus(...userNumbers.filter((number): number is string => Boolean(number)));
+
+  console.log(
+    `${users.length} active members - ${signalUsers.length} (${Math.round(
+      (signalUsers.length / users.length) * 100
+    )}%) are registered on Signal`
+  );
 
   for (const groupName of GROUPS_ENABLED) {
     const groupUsers = users.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
-    await setupGroup(signal, groupName, groupUsers);
+
+    // Find the Signal number for all matching users
+    const groupNumbers = groupUsers
+      .map((_, userIndex) => {
+        const userNumber = userNumbers[userIndex];
+        const signalUser = signalUsers.find((signalUser) => getSignalNumber(signalUser) === userNumber);
+        return signalUser?.number;
+      })
+      .filter((number): number is string => Boolean(number));
+
+    await setupGroup(signal, groupName, groupNumbers);
   }
 
   // Allow some time to handle received messages
