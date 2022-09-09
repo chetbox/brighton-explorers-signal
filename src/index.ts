@@ -163,6 +163,9 @@ async function main() {
     }
   });
 
+  // Allow some time to handle received messages
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   const users = await getActiveUsers();
 
   const userNumbers = users.map((user) => {
@@ -192,9 +195,6 @@ async function main() {
 
     await setupGroup(signal, groupName, groupNumbers);
   }
-
-  // Allow some time to handle received messages
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   signal.close();
 }
