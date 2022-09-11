@@ -188,8 +188,10 @@ async function main() {
 
     // Find the Signal number for all matching users
     const groupNumbers = groupUsers
-      .map((_, userIndex) => {
-        const userNumber = userNumbers[userIndex];
+      .map((groupUser) => {
+        const userNumber = userPhoneNumber(groupUser);
+        if (!userNumber) return;
+
         const signalUser = signalUsers.find((signalUser) => getSignalNumber(signalUser) === userNumber);
         return signalUser?.number;
       })
