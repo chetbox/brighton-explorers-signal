@@ -173,7 +173,9 @@ async function main() {
     return phoneNumber ? normalizePhoneNumber(phoneNumber) : null;
   });
 
-  const signalUsers = await signal.getUserStatus(...userNumbers.filter((number): number is string => Boolean(number)));
+  const signalUsers = (
+    await signal.getUserStatus(...userNumbers.filter((number): number is string => Boolean(number)))
+  ).filter(getSignalNumber);
 
   console.log(
     `${users.length} active members - ${signalUsers.length} (${Math.round(
