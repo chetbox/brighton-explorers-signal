@@ -5,6 +5,10 @@ describe("normalizePhoneNumber", () => {
     expect(normalizePhoneNumber("+44 77123 456 789")).toBe("+4477123456789");
   });
 
+  test("0044 UK number", () => {
+    expect(normalizePhoneNumber("00 44 77123 456 789")).toBe("+4477123456789");
+  });
+
   test("number with hyphens", () => {
     expect(normalizePhoneNumber("+44-77123-456-789")).toBe("+4477123456789");
   });

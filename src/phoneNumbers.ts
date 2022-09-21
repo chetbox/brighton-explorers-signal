@@ -6,6 +6,9 @@ export function normalizePhoneNumber(phoneNumber: string) {
   }
 
   // TODO: properly clean country code of phone numbers
+  if (phoneNumber.startsWith("00")) {
+    phoneNumber = phoneNumber.replace(/^00/, '+');
+  }
   if (phoneNumber.startsWith("7")) {
     phoneNumber = "0" + phoneNumber;
   }
