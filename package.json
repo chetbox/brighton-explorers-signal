@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "test": "yarn node --experimental-vm-modules $(yarn bin jest)",
-    "start": "SIGNAL_CLI=./signal-cli-0.10.8/bin/signal-cli node ."
+    "start": "SIGNAL_CLI=./signal-cli-0.11.2/bin/signal-cli node ."
   },
   "dependencies": {
     "json-rpc-2.0": "^1.3.0",

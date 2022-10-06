@@ -28,7 +28,7 @@ jobs:
           distribution: temurin
           java-version: "17"
       - if: github.ref == 'refs/heads/main'
-        run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.10.8/signal-cli-0.10.8-Linux.tar.gz" | tar -zx
+        run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
       - if: github.ref == 'refs/heads/main'
         run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       - if: github.ref == 'refs/heads/main'
