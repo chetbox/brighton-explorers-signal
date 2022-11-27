@@ -24,18 +24,7 @@ jobs:
       - run: yarn
       - run: yarn test
       - run: yarn build
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: "17"
-      - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
-      - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
-      - uses: actions/cache@v3
-        with:
-          path: .signal-cli-data
-          key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
-          restore-keys: |
-            signal-cli-data-
+      - uses: ./.github/actions/setup-signal-cli
       - run: yarn start -- message "${{ github.event.inputs.recipient }}" "${{ github.event.inputs.message }}"
         env:
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}

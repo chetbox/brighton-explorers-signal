@@ -23,21 +23,7 @@ jobs:
       - run: yarn build
       # From here we only run if on main branch
       - if: github.ref == 'refs/heads/main'
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: "17"
-      - if: github.ref == 'refs/heads/main'
-        run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
-      - if: github.ref == 'refs/heads/main'
-        run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
-      - if: github.ref == 'refs/heads/main'
-        uses: actions/cache@v3
-        with:
-          path: .signal-cli-data
-          key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
-          restore-keys: |
-            signal-cli-data-
+        uses: ./.github/actions/setup-signal-cli
       - if: github.ref == 'refs/heads/main'
         run: yarn start -- sync
         env:
