@@ -8,7 +8,7 @@ on:
         required: true
         default: "07"
       message:
-        description: "Test scenario tags"
+        description: Message
         required: true
 
 jobs:
