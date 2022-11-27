@@ -229,7 +229,7 @@ async function main() {
       try {
         await signal.sendMessage(number, GROUP_REMOVAL_DIRECT_MESSAGE);
       } catch (error) {
-        console.warn(`Failed to send group removal message to user `, DEBUG ? number : "");
+        console.warn(`Failed to send group removal message to user `, DEBUG ? number : "", error);
       }
     }
   }
