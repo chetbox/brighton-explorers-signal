@@ -48,6 +48,16 @@ const SIGNAL_GROUPS: Readonly<
   Social: { id: "2CHfRlRQFWrLlFapAsoGW30C+eEKt0+6kSFJYHVu1BM=", allowUser: userHasActivitySelected },
 };
 
+const GROUP_REMOVAL_DIRECT_MESSAGE = `Hi! 👋
+We've removed you from the the Brighton Explorers Club groups on Signal because either:
+- your BEC membership has expired, or
+- your registered phone number has changed
+
+To renew your membership: https://www.brightonexplorers.org/Subscriptions/View/MySubscriptions
+
+To update your phone number on your profile: https://www.brightonexplorers.org/UserPage
+`;
+
 function userPhoneNumber(user: MyClubhouseUser) {
   const number = user.MobileTelephone || user.HomeTelephone || user.BusinessTelephone;
   return number ? normalizePhoneNumber(number) : null;
@@ -94,26 +104,31 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
       ...existingGroup.requestingMembers,
     ].map((member) => member.number)
   );
-  const newNumbers = expectedNumbers.filter((number) => !existingNumbers.has(number));
-  const oldNumbers = [...existingNumbers].filter(
+  const numbersAdded = expectedNumbers.filter((number) => !existingNumbers.has(number));
+  const numbersRemoved = [...existingNumbers].filter(
     (number): number is string => typeof number === "string" && !expectedNumbersSet.has(number)
   );
 
-  if (oldNumbers.length > 0) {
-    console.log(`Removing old numbers from group "${groupName}" (${group.id})`, DEBUG ? oldNumbers : oldNumbers.length);
-    !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, oldNumbers));
+  if (numbersRemoved.length > 0) {
+    console.log(
+      `Removing old numbers from group "${groupName}" (${group.id})`,
+      DEBUG ? numbersRemoved : numbersRemoved.length
+    );
+    !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, numbersRemoved));
   }
 
-  if (newNumbers.length > 0) {
-    console.log(`Adding ${DEBUG ? newNumbers : newNumbers.length} new numbers to group "${groupName}" (${group.id})`);
+  if (numbersAdded.length > 0) {
+    console.log(
+      `Adding ${DEBUG ? numbersAdded : numbersAdded.length} new numbers to group "${groupName}" (${group.id})`
+    );
 
     try {
-      !DRY_RUN && (await signal.addNumbersToGroup(group.id, newNumbers));
+      !DRY_RUN && (await signal.addNumbersToGroup(group.id, numbersAdded));
     } catch (error) {
       console.warn("Failed to add numbers to group", error);
       console.log("Trying again one-by-one");
 
-      for (const number of newNumbers) {
+      for (const number of numbersAdded) {
         try {
           !DRY_RUN && (await signal.addNumbersToGroup(group.id, [number]));
         } catch (error) {
@@ -122,6 +137,8 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
       }
     }
   }
+
+  return { numbersAdded, numbersRemoved };
 }
 
 async function main() {
@@ -166,25 +183,27 @@ async function main() {
   // Allow some time to handle received messages
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  const users = await getActiveUsers();
+  const activeUsers = await getActiveUsers();
 
-  const userNumbers = users.map((user) => {
+  const activeUserNumbers = activeUsers.map((user) => {
     const phoneNumber = userPhoneNumber(user);
     return phoneNumber ? normalizePhoneNumber(phoneNumber) : null;
   });
 
-  const signalUsers = (
-    await signal.getUserStatus(...userNumbers.filter((number): number is string => Boolean(number)))
+  const activeSignalUsers = (
+    await signal.getUserStatus(...activeUserNumbers.filter((number): number is string => Boolean(number)))
   ).filter(getSignalNumber);
 
   console.log(
-    `${users.length} active members - ${signalUsers.length} (${Math.round(
-      (signalUsers.length / users.length) * 100
+    `${activeUsers.length} active members - ${activeSignalUsers.length} (${Math.round(
+      (activeSignalUsers.length / activeUsers.length) * 100
     )}%) are registered on Signal`
   );
 
+  const numbersRemovedFromGroups = new Set<string>();
+
   for (const groupName of GROUPS_ENABLED) {
-    const groupUsers = users.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
+    const groupUsers = activeUsers.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
 
     // Find the Signal number for all matching users
     const groupNumbers = groupUsers
@@ -192,12 +211,27 @@ async function main() {
         const userNumber = userPhoneNumber(groupUser);
         if (!userNumber) return;
 
-        const signalUser = signalUsers.find((signalUser) => getSignalNumber(signalUser) === userNumber);
+        const signalUser = activeSignalUsers.find((signalUser) => getSignalNumber(signalUser) === userNumber);
         return signalUser?.number;
       })
       .filter((number): number is string => Boolean(number));
 
-    await setupGroup(signal, groupName, groupNumbers);
+    const { numbersRemoved } = await setupGroup(signal, groupName, groupNumbers);
+    numbersRemoved.forEach((number) => numbersRemovedFromGroups.add(number));
+  }
+
+  // Send a message to inactive numbers to tell them why they have been removed from groups
+  const activeUserNumbersSet: ReadonlySet<string> = new Set(
+    activeUserNumbers.filter((number): number is string => Boolean(number))
+  );
+  for (const number of numbersRemovedFromGroups) {
+    if (!activeUserNumbersSet.has(number)) {
+      try {
+        await signal.sendMessage(number, GROUP_REMOVAL_DIRECT_MESSAGE);
+      } catch (error) {
+        console.warn(`Failed to send group removal message to user `, DEBUG ? number : "");
+      }
+    }
   }
 
   signal.close();

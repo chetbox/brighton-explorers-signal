@@ -135,6 +135,10 @@ export default class SignalCli {
     return (await this.rpcClient.request("getUserStatus", { recipient: numbers })) as SignalMemberStatus[];
   }
 
+  public async sendMessage(recipient: string, message: string) {
+    return await this.rpcClient.request("sendMessage", { recipient, message });
+  }
+
   public async listGroups() {
     return (await this.rpcClient.request("listGroups")) as SignalGroup[];
   }
