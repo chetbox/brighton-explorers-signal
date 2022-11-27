@@ -1,15 +1,18 @@
-name: Build and run
+name: Send message
 
 on:
-  schedule:
-    - cron: "23 */2 * * *" # Every 2 hours
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      recipient:
+        description: Recipient's phone number
+        required: true
+        default: "07"
+      message:
+        description: "Test scenario tags"
+        required: true
 
 jobs:
-  build-and-run:
+  send_message:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     concurrency: signal-cli
@@ -27,20 +30,15 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - if: github.ref == 'refs/heads/main'
-        run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
-      - if: github.ref == 'refs/heads/main'
-        run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
-      - if: github.ref == 'refs/heads/main'
-        uses: actions/cache@v3
+      - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
+      - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      - uses: actions/cache@v3
         with:
           path: .signal-cli-data
           key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
           restore-keys: |
             signal-cli-data-
-      - if: github.ref == 'refs/heads/main'
-        run: yarn start -- sync
+      - run: yarn start -- message "${{ github.event.inputs.recipient }}" "${{ github.event.inputs.message }}"
         env:
-          DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
           MYCLUBHOUSE_ACCESS_TOKEN: ${{ secrets.MYCLUBHOUSE_ACCESS_TOKEN }}

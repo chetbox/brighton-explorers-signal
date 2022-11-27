@@ -1,3 +1,4 @@
+import { argv } from "process";
 import { DEBUG, DRY_RUN } from "./env.js";
 import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import { normalizePhoneNumber } from "./phoneNumbers.js";
@@ -141,7 +142,7 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
   return { numbersAdded, numbersRemoved };
 }
 
-async function main() {
+async function syncAllGroups() {
   DEBUG && console.log("🪲 Debug mode. PPI may be shown on the console.");
   DRY_RUN && console.log("🧪 Dry-run mode, not making any changes.");
   (DEBUG || DRY_RUN) && console.log("");
@@ -237,4 +238,31 @@ async function main() {
   signal.close();
 }
 
-main();
+async function sendMessage(number: string, message: string) {
+  const signal = new Signal();
+  !DRY_RUN && (await signal.sendMessage(number, message));
+  signal.close();
+}
+
+const HELP_TEXT = `Arguments:
+sync - Sync Signal groups with myClubhouse
+message NUMBER MESSAGE - Send MESSAGE to NUMBER as a direct message`;
+
+if (argv.length <= 2) {
+  throw new Error("No arguments supplied");
+}
+
+switch (process.argv[2]) {
+  case "--help":
+    console.log(HELP_TEXT);
+    break;
+  case "sync":
+    await syncAllGroups();
+    break;
+  case "message":
+    await sendMessage(process.argv[3], process.argv[4]);
+    break;
+  default:
+    console.log(HELP_TEXT);
+    throw new Error("No arguments passed");
+}
