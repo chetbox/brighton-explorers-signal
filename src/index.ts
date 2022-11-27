@@ -240,7 +240,7 @@ async function syncAllGroups() {
 
 async function sendMessage(number: string, message: string) {
   const signal = new Signal();
-  !DRY_RUN && (await signal.sendMessage(number, message));
+  !DRY_RUN && (await signal.sendMessage(normalizePhoneNumber(number), message));
   signal.close();
 }
 
