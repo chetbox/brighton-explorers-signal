@@ -7,7 +7,7 @@ runs:
       with:
         distribution: temurin
         java-version: "17"
-    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.2/signal-cli-0.11.2-Linux.tar.gz" | tar -zx
+    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.11.5.1/signal-cli-0.11.5.1-Linux.tar.gz" | tar -zx
       shell: bash
     - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       shell: bash
