@@ -17,3 +17,4 @@ runs:
         key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
         restore-keys: |
           signal-cli-data-
+        fail-on-cache-miss: true
