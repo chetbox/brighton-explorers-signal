@@ -1,10 +1,9 @@
 import fetch from "node-fetch";
 import { DEBUG } from "./env.js";
 
-const ACTIVE_USERS_URL =
-  "https://www.myclubhouse.co.uk/brightonexplorers/api/v1/users?filter=IsCurrentMember%3Dtrue&pageSize=1000";
+const ACTIVE_USERS_URL = "https://www.brightonexplorers.org/api/v1/users?filter=IsCurrentMember%3Dtrue&pageSize=1000";
 
-const EVENTS_URL = "https://www.myclubhouse.co.uk/brightonexplorers/api/v1/events?filter=IsDraft%3Dfalse&pageSize=1000";
+const EVENTS_URL = "https://www.brightonexplorers.org/api/v1/events?filter=IsDraft%3Dfalse&pageSize=1000";
 
 const API_ACCESS_TOKEN = process.env.MYCLUBHOUSE_ACCESS_TOKEN!;
 if (!API_ACCESS_TOKEN) {

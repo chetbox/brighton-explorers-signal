@@ -182,7 +182,7 @@ async function syncAllGroups() {
   });
 
   // Allow some time to handle received messages
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  // await new Promise((resolve) => setTimeout(resolve, 5000));
 
   const activeUsers = await getActiveUsers();
 
