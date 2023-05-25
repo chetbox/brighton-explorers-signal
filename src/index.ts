@@ -222,9 +222,9 @@ async function syncAllGroups() {
     .map(userPhoneNumber)
     .filter((number): number is string => Boolean(number));
   console.log(activeUserNumbersNotInSignalGroups.length, "active users not in Signal groups");
-  const activeSignalUsersNotInSignalGroups = (await signal.getUserStatus(...activeUserNumbersNotInSignalGroups)).filter(
-    getSignalNumber
-  );
+  const activeSignalUsersNotInSignalGroups = (await signal.getUserStatus(...activeUserNumbersNotInSignalGroups))
+    .filter((status): status is NonNullable<typeof status> => Boolean(status))
+    .filter(getSignalNumber);
   const activeUsersNotInSignalGroups = activeSignalUsersNotInSignalGroups
     .map((signalUser) => {
       const signalNumber = getSignalNumber(signalUser);

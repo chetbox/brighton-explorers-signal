@@ -132,7 +132,27 @@ export default class SignalCli {
   }
 
   public async getUserStatus(...numbers: string[]) {
-    return (await this.rpcClient.request("getUserStatus", { recipient: numbers })) as SignalMemberStatus[];
+    const statuses: (SignalMemberStatus | null)[] = [];
+
+    // Call `getUserStatus` for a few numbers rather than all at once like we used to
+    // This is to work around the error `4008 (CdsiResourceExhaustedException)`
+    // which - from May 2023 - seems to happen when `getUserStatus` is called with a lot of numbers
+    // (e.g. with ~85 numbers we get this error for most calls to `getUserStatus` when running every 4 hours)
+    const sliceSize = 10;
+    for (let i = 0; i < numbers.length; i += sliceSize) {
+      const numbersSlice = numbers.slice(i, i + sliceSize);
+      try {
+        statuses.push(
+          ...((await this.rpcClient.request("getUserStatus", { recipient: numbersSlice })) as SignalMemberStatus[])
+        );
+      } catch (error) {
+        console.warn(`Error getting user status for ${sliceSize} numbers:`, DEBUG ? numbersSlice : "", error);
+        statuses.push(...new Array(i).fill(null));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // Avoid "HTTP 429 (Too Many Requests)" rate limit error
+    }
+
+    return statuses;
   }
 
   public async sendMessage(recipient: string, message: string) {
