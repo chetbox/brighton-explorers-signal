@@ -130,7 +130,7 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
 }
 
 async function syncAllGroups() {
-  DEBUG && console.log("🪲 Debug mode. PPI may be shown on the console.");
+  DEBUG && console.log("🪲 Debug mode. PII may be shown on the console.");
   DRY_RUN && console.log("🧪 Dry-run mode, not making any changes.");
   (DEBUG || DRY_RUN) && console.log("");
 
