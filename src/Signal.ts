@@ -205,7 +205,10 @@ export default class SignalCli {
         const member = members[i];
         try {
           await new Promise((resolve) => setTimeout(resolve, 125)); // Avoid rate limiting
-          await this.rpcClient.request("updateGroup", { groupId, members: [member] });
+          await Promise.race([
+            this.rpcClient.request("updateGroup", { groupId, members: [member] }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000)),
+          ]);
         } catch (error) {
           console.warn(`Failed to add member ${i}/${members.length} to group ${groupId}`);
         }
