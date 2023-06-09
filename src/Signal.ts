@@ -136,21 +136,17 @@ export default class SignalCli {
       link?: SignalGroupLinkState;
     }
   ) {
-    return (await this.withTimeoutRestartingSignalCli(
-      this.rpcClient.request("updateGroup", { groupId, ...options })
-    )) as SignalGroup[];
+    return (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, ...options }))) as SignalGroup[];
   }
 
   public async resetGroupLink(groupId: string) {
-    return (await this.withTimeoutRestartingSignalCli(
+    return (await this.withTimeout(
       this.rpcClient.request("updateGroup", { groupId, resetLink: true })
     )) as SignalGroup[];
   }
 
   public async sendReceipt(number: string, targetTimestamp: number, type: "read" | "viewed" = "read") {
-    return await this.withTimeoutRestartingSignalCli(
-      this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type })
-    );
+    return await this.withTimeout(this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type }));
   }
 
   public async createGroup(name: string, adminNumbers: string[]) {
@@ -159,7 +155,7 @@ export default class SignalCli {
       return;
     }
 
-    return (await this.withTimeoutRestartingSignalCli(
+    return (await this.withTimeout(
       this.rpcClient.request("updateGroup", {
         name,
         members: adminNumbers,
@@ -180,9 +176,7 @@ export default class SignalCli {
     // Attempt to add members as a batch
     // This may fail if any of the numbers are not registered on Signal
     try {
-      return (await this.withTimeoutRestartingSignalCli(
-        this.rpcClient.request("updateGroup", { groupId, members })
-      )) as SignalGroup[];
+      return (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members }))) as SignalGroup[];
     } catch (error) {
       console.warn(
         "Failed to add members as a batch, trying one-by-one",
@@ -192,9 +186,7 @@ export default class SignalCli {
         const member = members[i];
         try {
           await new Promise((resolve) => setTimeout(resolve, 125)); // Avoid rate limiting
-          await this.withTimeoutRestartingSignalCli(
-            this.rpcClient.request("updateGroup", { groupId, members: [member] })
-          );
+          await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [member] }));
         } catch (error) {
           console.warn(
             `Failed to add member ${i}/${members.length} to group ${groupId}`,
@@ -211,9 +203,7 @@ export default class SignalCli {
       return;
     }
 
-    return (await this.withTimeoutRestartingSignalCli(
-      this.rpcClient.request("updateGroup", { groupId, removeMembers })
-    )) as SignalGroup[];
+    return (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, removeMembers }))) as SignalGroup[];
   }
 
   private spawnSignalCli() {
@@ -253,7 +243,7 @@ export default class SignalCli {
     return rpcClient;
   }
 
-  private async withTimeoutRestartingSignalCli<T>(promise: PromiseLike<T>): Promise<T> {
+  private async withTimeout<T>(promise: PromiseLike<T>): Promise<T> {
     let timeout: NodeJS.Timeout;
 
     return Promise.race([
@@ -261,19 +251,7 @@ export default class SignalCli {
       new Promise<T>(
         (_, reject) =>
           (timeout = setTimeout(async () => {
-            console.warn("Stopping signal-cli");
-
-            this.process.removeAllListeners();
-            this.process.kill("SIGKILL");
-
-            console.warn("Restarting signal-cli");
-
-            this.process = this.spawnSignalCli();
-            this.setupRpcClient(this.process);
-
-            await new Promise((resolve) => setTimeout(resolve, 2000)); // Give signal-cli time to restart
-
-            reject(new Error("Timeout. Restarted signal-cli"));
+            reject(new Error("Timeout"));
           }, 5000))
       ),
     ]).finally(() => {
