@@ -254,26 +254,32 @@ export default class SignalCli {
   }
 
   private async withTimeoutRestartingSignalCli<T>(promise: PromiseLike<T>): Promise<T> {
+    let timeout: NodeJS.Timeout;
+
     return Promise.race([
       promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(async () => {
-          console.warn("Stopping signal-cli");
+      new Promise<T>(
+        (_, reject) =>
+          (timeout = setTimeout(async () => {
+            console.warn("Stopping signal-cli");
 
-          this.process.removeAllListeners();
-          this.process.kill(SIGTERM);
+            this.process.removeAllListeners();
+            this.process.kill(); // SIGTERM
 
-          console.warn("Restarting signal-cli");
+            console.warn("Restarting signal-cli");
 
-          this.process = this.spawnSignalCli();
-          this.setupRpcClient(this.process);
+            this.process = this.spawnSignalCli();
+            this.setupRpcClient(this.process);
 
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Give signal-cli time to restart
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Give signal-cli time to restart
 
-          reject(new Error("Timeout. Restarted signal-cli"));
-        }, 5000)
+            reject(new Error("Timeout. Restarted signal-cli"));
+          }, 5000))
       ),
-    ]);
+    ]).then((value) => {
+      clearTimeout(timeout);
+      return value;
+    });
   }
 }
 
