@@ -199,15 +199,21 @@ export default class SignalCli {
     // This may fail if any of the numbers are not registered on Signal
     try {
       return (await withTimeout(this.rpcClient.request("updateGroup", { groupId, members }), 5000)) as SignalGroup[];
-    } catch {
-      console.warn("Failed to add members as a batch, trying one-by-one");
+    } catch (error) {
+      console.warn(
+        "Failed to add members as a batch, trying one-by-one",
+        DEBUG ? error : (error as Error).message.replace(/\+[0-9]+/g, "[REDACTED]")
+      );
       for (let i = 0; i < members.length; i++) {
         const member = members[i];
         try {
           await new Promise((resolve) => setTimeout(resolve, 125)); // Avoid rate limiting
           await withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [member] }), 1000);
         } catch (error) {
-          console.warn(`Failed to add member ${i}/${members.length} to group ${groupId}`);
+          console.warn(
+            `Failed to add member ${i}/${members.length} to group ${groupId}`,
+            DEBUG ? error : (error as Error).message.replace(/\+[0-9]+/g, "[REDACTED]")
+          );
         }
       }
     }
