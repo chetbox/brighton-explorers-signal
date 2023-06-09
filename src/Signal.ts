@@ -271,14 +271,11 @@ export default class SignalCli {
             this.process = this.spawnSignalCli();
             this.setupRpcClient(this.process);
 
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Give signal-cli time to restart
-
             reject(new Error("Timeout. Restarted signal-cli"));
           }, 5000))
       ),
-    ]).then((value) => {
+    ]).finally(() => {
       clearTimeout(timeout);
-      return value;
     });
   }
 }
