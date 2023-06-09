@@ -188,70 +188,10 @@ async function syncAllGroups() {
 
   const signalGroups = await signal.listGroups();
 
-  // Find the numbers we already know about so we can reduce the numbers we call `getUserStatus` with
-  // This is to avoid the error `4008 (CdsiResourceExhaustedException)`
-  // which - from May 2023 - seems to happen when `getUserStatus` is called with a lot of numbers
-  // (e.g. with ~350 numbers we get this error for almost every call to `getUserStatus` when running every 2 hours)
-
-  const knownSignalNumbers: ReadonlySet<string> = new Set(
-    GROUPS_ENABLED.flatMap(
-      (groupName) =>
-        signalGroups
-          .find(({ id }) => id === SIGNAL_GROUPS[groupName].id)
-          ?.members.map((member) => member.number)
-          .filter((number): number is string => Boolean(number)) ?? []
-    )
-  );
-
-  // Find users we already know are in Signal groups
-  const activeUsersInSignalGroups = activeUsers.filter((user) => {
-    const userNumber = userPhoneNumber(user);
-    return userNumber && knownSignalNumbers.has(userNumber);
-  });
-  const activeUserIdsInSignalGroups: ReadonlySet<number> = new Set(activeUsersInSignalGroups.map((user) => user.ID));
-  console.log(
-    activeUsersInSignalGroups.length,
-    "known active Signal users out of",
-    activeUsers.length,
-    "total active users"
-  );
-
-  // Find users whose number is not in a Signal group and check if they are registered on Signal
-  const activeUserNumbersNotInSignalGroups = activeUsers
-    .filter((user) => !activeUserIdsInSignalGroups.has(user.ID))
-    .map(userPhoneNumber)
-    .filter((number): number is string => Boolean(number));
-  console.log(activeUserNumbersNotInSignalGroups.length, "active users not in Signal groups");
-  const activeSignalUsersNotInSignalGroups = (await signal.getUserStatus(...activeUserNumbersNotInSignalGroups))
-    .filter((status): status is NonNullable<typeof status> => Boolean(status))
-    .filter(getSignalNumber);
-  const activeUsersNotInSignalGroups = activeSignalUsersNotInSignalGroups
-    .map((signalUser) => {
-      const signalNumber = getSignalNumber(signalUser);
-      if (!signalNumber) {
-        return undefined;
-      }
-      return activeUsers.find((user) => userPhoneNumber(user) === signalNumber);
-    })
-    .filter((user): user is MyClubhouseUser => Boolean(user));
-  console.log(activeSignalUsersNotInSignalGroups.length, "active users not in Signal groups have a Signal number");
-
-  // Active Signal users are active users we've seen in a group before
-  // AND those who are registered on Signal number not yet in any groups
-  const activeUsersWithSignalNumber = [...activeUsersInSignalGroups, ...activeUsersNotInSignalGroups];
-
-  console.log(
-    `${activeUsers.length} active members - ${activeUsersWithSignalNumber.length} (${Math.round(
-      (activeUsersWithSignalNumber.length / activeUsers.length) * 100
-    )}%) are registered on Signal`
-  );
-
   const numbersRemovedFromGroups = new Set<string>();
 
   for (const groupName of GROUPS_ENABLED) {
-    const groupUsers = activeUsersWithSignalNumber.filter((user) =>
-      SIGNAL_GROUPS[groupName].allowUser(user, groupName)
-    );
+    const groupUsers = activeUsers.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
 
     // Find the Signal number for all matching users
     const groupNumbers = groupUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
@@ -273,6 +213,21 @@ async function syncAllGroups() {
       }
     }
   }
+
+  const knownSignalNumbers: ReadonlySet<string> = new Set(
+    GROUPS_ENABLED.flatMap(
+      (groupName) =>
+        signalGroups
+          .find(({ id }) => id === SIGNAL_GROUPS[groupName].id)
+          ?.members.map((member) => member.number)
+          .filter((number): number is string => Boolean(number)) ?? []
+    )
+  );
+  console.log(
+    `${knownSignalNumbers.size} Signal users out of ${activeUsers.length} total active members (${Math.round(
+      (knownSignalNumbers.size / activeUsers.length) * 100
+    )}%) `
+  );
 
   signal.close();
 }

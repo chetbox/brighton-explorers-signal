@@ -131,28 +131,15 @@ export default class SignalCli {
     this.process.kill(); // Causes SIGTERM
   }
 
-  public async getUserStatus(...numbers: string[]) {
-    const statuses: (SignalMemberStatus | null)[] = [];
-
-    // Call `getUserStatus` for a few numbers rather than all at once like we used to
-    // This is to work around the error `4008 (CdsiResourceExhaustedException)`
-    // which - from May 2023 - seems to happen when `getUserStatus` is called with a lot of numbers
-    // (e.g. with ~85 numbers we get this error for most calls to `getUserStatus` when running every 4 hours)
-    const sliceSize = 10;
-    for (let i = 0; i < numbers.length; i += sliceSize) {
-      const numbersSlice = numbers.slice(i, i + sliceSize);
-      try {
-        statuses.push(
-          ...((await this.rpcClient.request("getUserStatus", { recipient: numbersSlice })) as SignalMemberStatus[])
-        );
-      } catch (error) {
-        console.warn(`Error getting user status for ${sliceSize} numbers:`, DEBUG ? numbersSlice : "", error);
-        statuses.push(...new Array(i).fill(null));
-      }
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Avoid "HTTP 429 (Too Many Requests)" rate limit error
-    }
-
-    return statuses;
+  /**
+   * This should only be called with a few numbers at a time in short succession
+   *
+   * This is to work around the error `4008 (CdsiResourceExhaustedException)`
+   * which - from May 2023 - seems to happen when `getUserStatus` is called with a lot of numbers
+   * (e.g. with ~85 numbers we get this error for most calls to `getUserStatus` when running every 4 hours)
+   */
+  private async getUserStatus(...numbers: string[]) {
+    return (await this.rpcClient.request("getUserStatus", { recipient: numbers })) as SignalMemberStatus[];
   }
 
   public async sendMessage(recipient: string, message: string) {
@@ -199,13 +186,20 @@ export default class SignalCli {
     })) as SignalGroup[];
   }
 
-  public async addNumbersToGroup(groupId: string, members: string[]) {
-    if (members.length === 0) {
+  /**
+   * Ignores numbers that are not registered on Signal
+   */
+  public async addNumbersToGroup(groupId: string, numbers: string[]) {
+    if (numbers.length === 0) {
       console.warn(`No numbers to add to group ${groupId}`);
       return;
     }
 
-    return (await this.rpcClient.request("updateGroup", { groupId, members })) as SignalGroup[];
+    const numbersToAdd = (await this.getUserStatus(...numbers))
+      .filter((status): status is NonNullable<typeof status> => Boolean(status))
+      .filter(getSignalNumber);
+
+    return (await this.rpcClient.request("updateGroup", { groupId, members: numbersToAdd })) as SignalGroup[];
   }
 
   public async removeNumbersFromGroup(groupId: string, removeMembers: string[]) {
