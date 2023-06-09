@@ -189,17 +189,27 @@ export default class SignalCli {
   /**
    * Ignores numbers that are not registered on Signal
    */
-  public async addNumbersToGroup(groupId: string, numbers: string[]) {
-    if (numbers.length === 0) {
+  public async addNumbersToGroup(groupId: string, members: string[]) {
+    if (members.length === 0) {
       console.warn(`No numbers to add to group ${groupId}`);
       return;
     }
 
-    const numbersToAdd = (await this.getUserStatus(...numbers))
-      .filter((status): status is NonNullable<typeof status> => Boolean(status))
-      .filter(getSignalNumber);
-
-    return (await this.rpcClient.request("updateGroup", { groupId, members: numbersToAdd })) as SignalGroup[];
+    // Attempt to add members as a batch
+    // This may fail if any of the numbers are not registered on Signal
+    try {
+      return (await this.rpcClient.request("updateGroup", { groupId, members })) as SignalGroup[];
+    } catch {
+      console.warn("Failed to add members as a batch, trying one by one");
+      for (const member of members) {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Avoid rate limiting
+          await this.rpcClient.request("updateGroup", { groupId, members: [member] });
+        } catch (error) {
+          console.warn(`Failed to add member to group ${groupId}`, error);
+        }
+      }
+    }
   }
 
   public async removeNumbersFromGroup(groupId: string, removeMembers: string[]) {
