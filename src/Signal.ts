@@ -264,12 +264,14 @@ export default class SignalCli {
             console.warn("Stopping signal-cli");
 
             this.process.removeAllListeners();
-            this.process.kill(); // SIGTERM
+            this.process.kill("SIGKILL");
 
             console.warn("Restarting signal-cli");
 
             this.process = this.spawnSignalCli();
             this.setupRpcClient(this.process);
+
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Give signal-cli time to restart
 
             reject(new Error("Timeout. Restarted signal-cli"));
           }, 5000))
