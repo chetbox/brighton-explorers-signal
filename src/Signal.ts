@@ -258,8 +258,12 @@ export default class SignalCli {
       promise,
       new Promise<T>((_, reject) =>
         setTimeout(async () => {
+          console.warn("Stopping signal-cli");
+
           this.process.removeAllListeners();
           this.process.kill(SIGTERM);
+
+          console.warn("Restarting signal-cli");
 
           this.process = this.spawnSignalCli();
           this.setupRpcClient(this.process);
