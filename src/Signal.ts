@@ -162,15 +162,18 @@ export default class SignalCli {
       link?: SignalGroupLinkState;
     }
   ) {
-    return (await this.rpcClient.request("updateGroup", { groupId, ...options })) as SignalGroup[];
+    return (await withTimeout(this.rpcClient.request("updateGroup", { groupId, ...options }), 5000)) as SignalGroup[];
   }
 
   public async resetGroupLink(groupId: string) {
-    return (await this.rpcClient.request("updateGroup", { groupId, resetLink: true })) as SignalGroup[];
+    return (await withTimeout(
+      this.rpcClient.request("updateGroup", { groupId, resetLink: true }),
+      5000
+    )) as SignalGroup[];
   }
 
   public async sendReceipt(number: string, targetTimestamp: number, type: "read" | "viewed" = "read") {
-    return await this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type });
+    return await withTimeout(this.rpcClient.request("sendReceipt", { recipient: number, targetTimestamp, type }), 5000);
   }
 
   public async createGroup(name: string, adminNumbers: string[]) {
@@ -179,11 +182,14 @@ export default class SignalCli {
       return;
     }
 
-    return (await this.rpcClient.request("updateGroup", {
-      name,
-      members: adminNumbers,
-      admin: adminNumbers,
-    })) as SignalGroup[];
+    return (await withTimeout(
+      this.rpcClient.request("updateGroup", {
+        name,
+        members: adminNumbers,
+        admin: adminNumbers,
+      }),
+      5000
+    )) as SignalGroup[];
   }
 
   /**
