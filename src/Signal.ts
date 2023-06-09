@@ -198,17 +198,14 @@ export default class SignalCli {
     // Attempt to add members as a batch
     // This may fail if any of the numbers are not registered on Signal
     try {
-      return (await this.rpcClient.request("updateGroup", { groupId, members })) as SignalGroup[];
+      return (await withTimeout(this.rpcClient.request("updateGroup", { groupId, members }), 5000)) as SignalGroup[];
     } catch {
       console.warn("Failed to add members as a batch, trying one-by-one");
       for (let i = 0; i < members.length; i++) {
         const member = members[i];
         try {
           await new Promise((resolve) => setTimeout(resolve, 125)); // Avoid rate limiting
-          await Promise.race([
-            this.rpcClient.request("updateGroup", { groupId, members: [member] }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000)),
-          ]);
+          await withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [member] }), 1000);
         } catch (error) {
           console.warn(`Failed to add member ${i}/${members.length} to group ${groupId}`);
         }
@@ -222,10 +219,20 @@ export default class SignalCli {
       return;
     }
 
-    return (await this.rpcClient.request("updateGroup", { groupId, removeMembers })) as SignalGroup[];
+    return (await withTimeout(
+      this.rpcClient.request("updateGroup", { groupId, removeMembers }),
+      5000
+    )) as SignalGroup[];
   }
 }
 
 export function getSignalNumber(user: SignalMemberStatus) {
   return user.isRegistered ? user.number : null;
+}
+
+async function withTimeout<T>(promise: PromiseLike<T>, timeout: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeout)),
+  ]);
 }
