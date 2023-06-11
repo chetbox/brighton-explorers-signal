@@ -203,7 +203,16 @@ export default class SignalCli {
       return;
     }
 
-    return (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, removeMembers }))) as SignalGroup[];
+    try {
+      return (await this.withTimeout(
+        this.rpcClient.request("updateGroup", { groupId, removeMembers })
+      )) as SignalGroup[];
+    } catch (error) {
+      console.warn(
+        `Failed to remove ${removeMembers.length} members from group`,
+        DEBUG ? error : (error as Error).message.replace(/\+[0-9]+/g, "[REDACTED]")
+      );
+    }
   }
 
   private spawnSignalCli() {
