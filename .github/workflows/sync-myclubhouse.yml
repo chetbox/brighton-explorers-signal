@@ -25,7 +25,12 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/setup-signal-cli
       - if: github.ref == 'refs/heads/main'
-        run: yarn start -- sync
+        run: |
+          yarn start -- sync "Committee" "Bar Volunteers"
+          yarn start -- sync "Kayaking" "Stand Up Paddleboarding (SUP)" "Social"
+          yarn start -- sync "Badminton" "Caving" "Climbing" "Cycling (Road)"
+          yarn start -- sync "Mountain Biking" "Mountain Sports" "Surfing"
+          yarn start -- sync "Tennis" "Walking" "Windsurfing" "Running"
         env:
           DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}

@@ -6,8 +6,6 @@ import Signal, { getSignalNumber, SIGNAL_USER } from "./Signal.js";
 
 type SignalGroupName = "Committee" | "Bar Volunteers" | MyClubhouseActivity;
 
-const GROUPS_ENABLED: SignalGroupName[] = ["Committee", "Bar Volunteers", ...ALL_ACTIVITIES];
-
 function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
   return (user.Attributes.Activities ?? [])?.some((activityPreference) => activityPreference === activityName);
 }
@@ -129,7 +127,7 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
   return { numbersAdded, numbersRemoved };
 }
 
-async function syncAllGroups() {
+async function syncGroups(...groupNames: SignalGroupName[]) {
   DEBUG && console.log("🪲 Debug mode. PII may be shown on the console.");
   DRY_RUN && console.log("🧪 Dry-run mode, not making any changes.");
   (DEBUG || DRY_RUN) && console.log("");
@@ -177,7 +175,7 @@ async function syncAllGroups() {
 
   const numbersRemovedFromGroups = new Set<string>();
 
-  for (const groupName of GROUPS_ENABLED) {
+  for (const groupName of groupNames) {
     const groupUsers = activeUsers.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
 
     // Find the Signal number for all matching users
@@ -202,7 +200,7 @@ async function syncAllGroups() {
   }
 
   const knownSignalNumbers: ReadonlySet<string> = new Set(
-    GROUPS_ENABLED.flatMap(
+    groupNames.flatMap(
       (groupName) =>
         signalGroups
           .find(({ id }) => id === SIGNAL_GROUPS[groupName].id)
@@ -238,7 +236,8 @@ switch (process.argv[2]) {
     console.log(HELP_TEXT);
     break;
   case "sync":
-    await syncAllGroups();
+    const groupNames = process.argv.slice(3) as SignalGroupName[];
+    await syncGroups(...groupNames);
     break;
   case "message":
     await sendMessage(process.argv[3], process.argv[4]);
