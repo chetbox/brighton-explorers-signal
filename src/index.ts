@@ -244,3 +244,6 @@ switch (process.argv[2]) {
     console.log(HELP_TEXT);
     throw new Error("No arguments passed");
 }
+
+// Stop any long-running promises
+process.exit();
