@@ -42,6 +42,7 @@ jobs:
           yarn start -- sync "Windsurfing"
           yarn start -- sync "Running"
           yarn start -- sync "Social"
+          yarn start -- sync "Young Members"
         env:
           DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}

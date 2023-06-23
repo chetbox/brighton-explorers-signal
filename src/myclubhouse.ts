@@ -39,7 +39,14 @@ export type MyClubhouseActivity = typeof ALL_ACTIVITIES[number];
 export interface MyClubhouseUser {
   ID: number;
   Username: string;
+
   MembershipNumber: string;
+  IsCurrentMember: boolean;
+  RegistrationDate: string;
+  MembershipCategories: string[];
+  MembershipExpiryDate: string | null;
+
+  LastLoginTime: string | null;
 
   Title: string;
   Forename: string;
@@ -47,9 +54,11 @@ export interface MyClubhouseUser {
   Surname: string;
   CompanyName: string | null;
   Branch: string | null;
+  Age: number;
+  DOB: string;
 
   HomeTelephone: string;
-  BusinessTelephone: string;
+  BusinessTelephone: string | null;
   MobileTelephone: string;
 
   Email: string;
