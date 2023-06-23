@@ -105,6 +105,14 @@ export default class SignalCli {
     this.process.kill(); // Causes SIGTERM
   }
 
+  public async subscribeReceive() {
+    return (await this.rpcClient.request("subscribeReceive")) as number;
+  }
+
+  public async unsubscribeReceive(subscription: number) {
+    await this.rpcClient.request("unsubscribeReceive", { subscription });
+  }
+
   /**
    * This should only be called with a few numbers at a time in short succession
    *

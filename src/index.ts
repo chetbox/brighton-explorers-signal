@@ -134,6 +134,7 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
   (DEBUG || DRY_RUN) && console.log("");
 
   const signal = new Signal();
+  const receiveSubscription = await signal.subscribeReceive();
 
   // Send read receipts for any messages received
 
@@ -213,6 +214,7 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
     )}%) `
   );
 
+  signal.unsubscribeReceive(receiveSubscription);
   signal.close();
 }
 
