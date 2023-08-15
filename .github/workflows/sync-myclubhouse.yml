@@ -25,6 +25,7 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/setup-signal-cli
       - if: github.ref == 'refs/heads/main'
+        name: Sync all groups
         run: |
           yarn start -- sync "Committee"
           yarn start -- sync "Bar Volunteers"
