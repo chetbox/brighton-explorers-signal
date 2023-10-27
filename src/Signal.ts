@@ -121,7 +121,7 @@ export default class SignalCli {
   }
 
   public async listGroups() {
-    return (await this.rpcClient.request("listGroups")) as SignalGroup[];
+    return (await this.rpcClient.request("listGroups", {})) as SignalGroup[];
   }
 
   public async setGroupPermissions(
