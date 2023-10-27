@@ -27,23 +27,24 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         name: Sync all groups
         run: |
-          yarn start -- sync "Committee"
-          yarn start -- sync "Bar Volunteers"
-          yarn start -- sync "Badminton"
-          yarn start -- sync "Caving"
-          yarn start -- sync "Climbing"
-          yarn start -- sync "Cycling (Road)"
-          yarn start -- sync "Kayaking"
-          yarn start -- sync "Mountain Biking"
-          yarn start -- sync "Mountain Sports"
-          yarn start -- sync "Stand Up Paddleboarding (SUP)"
-          yarn start -- sync "Surfing"
-          yarn start -- sync "Tennis"
-          yarn start -- sync "Walking"
-          yarn start -- sync "Windsurfing"
-          yarn start -- sync "Running"
-          yarn start -- sync "Social"
-          yarn start -- sync "Young Members"
+          yarn start -- sync \
+            "Committee" \
+            "Bar Volunteers" \
+            "Badminton" \
+            "Caving" \
+            "Climbing" \
+            "Cycling (Road)" \
+            "Kayaking" \
+            "Mountain Biking" \
+            "Mountain Sports" \
+            "Stand Up Paddleboarding (SUP)" \
+            "Surfing" \
+            "Tennis" \
+            "Walking" \
+            "Windsurfing" \
+            "Running" \
+            "Social" \
+            "Young Members"
         env:
           DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
