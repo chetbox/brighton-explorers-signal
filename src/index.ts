@@ -18,14 +18,14 @@ const SIGNAL_GROUPS: Readonly<
     allowUser: (user) =>
       (user.Roles ?? []).some((role) => role.Name === "BEC Committee Member" || role.Name === "BEC Committee Monitor"),
   },
+  Announcements: {
+    id: "60YIkTHfHuM9nEfVuQsfUgStbga21VqLnAEPF43q+ws=",
+    allowUser: () => true, // All members
+  },
   "Bar Volunteers": {
     id: "FqB/Dx7wW8YqDoLMjWyadYN5ZKWVG/KwMX1/gngf2cQ=",
     allowUser: (user) =>
       Boolean(user.Attributes["Bar trained"]) && (user.Attributes.Activities ?? [])?.includes("Social"),
-  },
-  Announcements: {
-    id: "60YIkTHfHuM9nEfVuQsfUgStbga21VqLnAEPF43q+ws=",
-    allowUser: () => true, // All members
   },
   Badminton: { id: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=", allowUser: userHasActivitySelected },
   Caving: { id: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=", allowUser: userHasActivitySelected },
