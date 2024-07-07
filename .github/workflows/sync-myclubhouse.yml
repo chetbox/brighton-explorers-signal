@@ -25,13 +25,6 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/setup-signal-cli
       - if: github.ref == 'refs/heads/main'
-        name: Sync to receive messages
-        run: yarn start -- sync
-        env:
-          DRY_RUN: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
-          SIGNAL_USER: ${{ secrets.SIGNAL_USER }}
-          MYCLUBHOUSE_ACCESS_TOKEN: ${{ secrets.MYCLUBHOUSE_ACCESS_TOKEN }}
-      - if: github.ref == 'refs/heads/main'
         name: Sync all groups
         run: |
           yarn start -- sync \
