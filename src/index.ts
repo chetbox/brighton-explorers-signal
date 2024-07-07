@@ -169,9 +169,6 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
     }
   });
 
-  // Allow some time to handle received messages
-  // await new Promise((resolve) => setTimeout(resolve, 5000));
-
   const activeUsers = await getActiveUsers();
 
   // Allow some time for any group updates to come in
