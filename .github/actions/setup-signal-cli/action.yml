@@ -7,7 +7,7 @@ runs:
       with:
         distribution: temurin
         java-version: "17"
-    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.12.8/signal-cli-0.12.8-Linux-native.tar.gz" | tar -zx
+    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.13.4/signal-cli-0.13.4-Linux-native.tar.gz" | tar -zx
       shell: bash
     - run: chmod +x signal-cli
       shell: bash
