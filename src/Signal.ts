@@ -74,7 +74,7 @@ if (!SIGNAL_USER) {
   throw new Error("SIGNAL_USER not set.");
 }
 
-const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString();
+const SIGNAL_CLI = process.env.SIGNAL_CLI || execSync("which signal-cli").toString().trim();
 if (!SIGNAL_CLI) {
   throw new Error("signal-cli not found. Set SIGNAL_CLI add signal-cli to PATH.");
 }
