@@ -216,7 +216,7 @@ export default class SignalCli {
   }
 
   private spawnSignalCli() {
-    const signalCliProcess = spawn(SIGNAL_CLI, [...SIGNAL_CLI_ARGS, "jsonRpc"]);
+    const signalCliProcess = spawn(SIGNAL_CLI, [...SIGNAL_CLI_ARGS, "jsonRpc", "--receive-mode=on-start"]);
 
     signalCliProcess.addListener("exit", (code) => {
       if (code && code !== SIGTERM) {

@@ -1,6 +1,6 @@
 import { argv } from "process";
 import { DEBUG, DRY_RUN } from "./env.js";
-import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
+import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
 import { normalizePhoneNumber } from "./phoneNumbers.js";
 import Signal, { getSignalNumber, SIGNAL_USER } from "./Signal.js";
 
