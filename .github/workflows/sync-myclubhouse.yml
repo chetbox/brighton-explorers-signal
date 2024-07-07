@@ -29,7 +29,6 @@ jobs:
         run: |
           yarn start -- sync \
             "Committee" \
-            "Announcements" \
             "Bar Volunteers" \
             "Badminton" \
             "Caving" \
