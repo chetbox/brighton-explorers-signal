@@ -4,7 +4,7 @@ import { ALL_ACTIVITIES, getActiveUsers, MyClubhouseActivity, MyClubhouseUser } 
 import { normalizePhoneNumber } from "./phoneNumbers.js";
 import Signal, { getSignalNumber, SIGNAL_USER } from "./Signal.js";
 
-type SignalGroupName = "Committee" | "Bar Volunteers" | "Young Members" | MyClubhouseActivity;
+type SignalGroupName = "Announcements" | "Committee" | "Bar Volunteers" | "Young Members" | MyClubhouseActivity;
 
 function userHasActivitySelected(user: MyClubhouseUser, activityName: SignalGroupName): boolean {
   return (user.Attributes.Activities ?? [])?.some((activityPreference) => activityPreference === activityName);
@@ -22,6 +22,10 @@ const SIGNAL_GROUPS: Readonly<
     id: "FqB/Dx7wW8YqDoLMjWyadYN5ZKWVG/KwMX1/gngf2cQ=",
     allowUser: (user) =>
       Boolean(user.Attributes["Bar trained"]) && (user.Attributes.Activities ?? [])?.includes("Social"),
+  },
+  Announcements: {
+    id: "60YIkTHfHuM9nEfVuQsfUgStbga21VqLnAEPF43q+ws=",
+    allowUser: () => true, // All members
   },
   Badminton: { id: "r9p6NuU4Tyoba+4S6YRGS0TouoOB/1q3H2RurkA1rB8=", allowUser: userHasActivitySelected },
   Caving: { id: "cwEah5FIN5kmb/V9mFhj5fsGIWFpfhDGCHqCyKB1ScM=", allowUser: userHasActivitySelected },
