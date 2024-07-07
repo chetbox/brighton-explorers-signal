@@ -174,6 +174,9 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
 
   const activeUsers = await getActiveUsers();
 
+  // Allow some time for any group updates to come in
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   const signalGroups = await signal.listGroups();
 
   const numbersRemovedFromGroups = new Set<string>();
