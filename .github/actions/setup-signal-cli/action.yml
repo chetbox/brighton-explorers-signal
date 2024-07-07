@@ -6,10 +6,10 @@ runs:
     - uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: "17"
-    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.13.4/signal-cli-0.13.4-Linux-native.tar.gz" | tar -zx
+        java-version: "21"
+    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.13.4/signal-cli-0.13.4.tar.gz" | tar -zx
       shell: bash
-    - run: chmod +x signal-cli
+    - run: echo "signal-cli-0.13.4/bin" >> $GITHUB_PATH
       shell: bash
     - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       shell: bash
