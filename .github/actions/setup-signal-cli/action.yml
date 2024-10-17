@@ -7,9 +7,9 @@ runs:
       with:
         distribution: temurin
         java-version: "21"
-    - run: curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.13.4/signal-cli-0.13.4.tar.gz" | tar -zx
+    - run: mkdir signal-cli && (cd signal-cli && curl -L "https://github.com/AsamK/signal-cli/releases/download/v0.13.7/signal-cli-0.13.7-Linux-native.tar.gz" | tar -zx)
       shell: bash
-    - run: echo "signal-cli-0.13.4/bin" >> $GITHUB_PATH
+    - run: echo "signal-cli" >> $GITHUB_PATH
       shell: bash
     - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       shell: bash
