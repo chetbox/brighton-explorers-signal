@@ -2,7 +2,7 @@ name: Sync with myClubhouse
 
 on:
   schedule:
-    - cron: "23 */12 * * *" # Every 12 hours
+    - cron: "23 */4 * * *" # Every 4 hours
   push:
     branches: [main]
   pull_request:
