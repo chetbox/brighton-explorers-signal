@@ -139,37 +139,6 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
   (DEBUG || DRY_RUN) && console.log("");
 
   const signal = new Signal();
-
-  // Send read receipts for any messages received
-
-  signal.addListener("receive", async (message) => {
-    if (message.envelope.dataMessage) {
-      const { timestamp, groupInfo } = message.envelope.dataMessage;
-      if (groupInfo) {
-        const group = (await signal.listGroups()).find(({ id }) => id === groupInfo.groupId);
-        if (group) {
-          const numbers = group.members
-            .map(({ number }) => number)
-            .filter((number): number is string => Boolean(number));
-          for (const number of numbers) {
-            try {
-              await signal.sendReceipt(number, timestamp);
-            } catch (error) {
-              console.error(
-                `Could not send read receipt to ${DEBUG ? number : "number"} in group ${groupInfo.groupId}:`,
-                error
-              );
-            }
-          }
-        } else {
-          console.warn(`Cannot send read receipt to group ${groupInfo.groupId}: Group not found`);
-        }
-      } else {
-        !DRY_RUN && (await signal.sendReceipt(message.envelope.sourceNumber, timestamp));
-      }
-    }
-  });
-
   const activeUsers = await getActiveUsers();
 
   // Allow some time for any group updates to come in
