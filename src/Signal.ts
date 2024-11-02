@@ -173,28 +173,38 @@ export default class SignalCli {
       return;
     }
 
+    const unregisteredNumbers = new Set<string>();
+
     // Attempt to add members as a batch
     // This may fail if any of the numbers are not registered on Signal
     try {
-      return (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members }))) as SignalGroup[];
+      (await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members }))) as SignalGroup[];
     } catch (error) {
       console.warn(
         "Failed to add members as a batch, trying one-by-one",
         DEBUG ? error : (error as Error).message.replace(/\+[0-9]+/g, "[REDACTED]")
       );
       for (let i = 0; i < members.length; i++) {
-        const member = members[i];
+        const memberNumber = members[i];
         try {
           await new Promise((resolve) => setTimeout(resolve, 250)); // Avoid rate limiting
-          await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [member] }));
+          await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [memberNumber] }));
         } catch (error) {
+          const message = (error as Error).message;
           console.warn(
             `Failed to add member ${i}/${members.length} to group ${groupId}`,
-            DEBUG ? error : (error as Error).message.replace(/\+[0-9]+/g, "[REDACTED]")
+            DEBUG ? error : message.replace(/\+[0-9]+/g, "[REDACTED]")
           );
+
+          if (message.includes("not registered")) {
+            // This user is not Signal. Let's mark them as not registered so we don't try to add them again
+            unregisteredNumbers.add(memberNumber);
+          }
         }
       }
     }
+
+    return { unregisteredNumbers };
   }
 
   public async removeNumbersFromGroup(groupId: string, removeMembers: string[]) {

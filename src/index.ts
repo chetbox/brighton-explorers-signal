@@ -122,15 +122,20 @@ async function setupGroup(signal: Signal, groupName: keyof typeof SIGNAL_GROUPS,
     !DRY_RUN && (await signal.removeNumbersFromGroup(group.id, numbersRemoved));
   }
 
+  let unregisteredNumbers = new Set<string>();
+
   if (numbersAdded.length > 0) {
     console.log(
       `Adding ${DEBUG ? numbersAdded : numbersAdded.length} new numbers to group "${groupName}" (${group.id})`
     );
 
-    !DRY_RUN && (await signal.addNumbersToGroup(group.id, numbersAdded));
+    if (!DRY_RUN) {
+      unregisteredNumbers =
+        (await signal.addNumbersToGroup(group.id, numbersAdded))?.unregisteredNumbers ?? unregisteredNumbers;
+    }
   }
 
-  return { numbersAdded, numbersRemoved };
+  return { numbersAdded, numbersRemoved, unregisteredNumbers };
 }
 
 async function syncGroups(...groupNames: SignalGroupName[]) {
@@ -178,15 +183,21 @@ async function syncGroups(...groupNames: SignalGroupName[]) {
   const signalGroups = await signal.listGroups();
 
   const numbersRemovedFromGroups = new Set<string>();
+  const numbersNotOnSignal = new Set<string>();
 
   for (const groupName of groupNames) {
     const groupUsers = activeUsers.filter((user) => SIGNAL_GROUPS[groupName].allowUser(user, groupName));
 
     // Find the Signal number for all matching users
-    const groupNumbers = groupUsers.map(userPhoneNumber).filter((number): number is string => Boolean(number));
+    const groupNumbers = groupUsers
+      .map(userPhoneNumber)
+      .filter((number): number is string => Boolean(number))
+      // If the number was not on Signal for a previous group don't try to add it again
+      .filter((number) => !numbersNotOnSignal.has(number));
 
-    const { numbersRemoved } = await setupGroup(signal, groupName, groupNumbers);
+    const { numbersRemoved, unregisteredNumbers } = await setupGroup(signal, groupName, groupNumbers);
     numbersRemoved.forEach((number) => numbersRemovedFromGroups.add(number));
+    unregisteredNumbers.forEach((number) => numbersNotOnSignal.add(number));
   }
 
   // Send a message to inactive numbers to tell them why they have been removed from groups
