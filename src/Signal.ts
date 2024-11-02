@@ -192,7 +192,7 @@ export default class SignalCli {
         } catch (error) {
           const message = (error as Error).message;
           console.warn(
-            `Failed to add member ${i}/${members.length} to group ${groupId}`,
+            `Failed to add member ${i + 1}/${members.length} to group ${groupId}`,
             DEBUG ? error : message.replace(/\+[0-9]+/g, "[REDACTED]")
           );
 
