@@ -1,3 +1,4 @@
+import "log-timestamp";
 import { argv } from "process";
 import { DEBUG, DRY_RUN } from "./env.js";
 import { getActiveUsers, MyClubhouseActivity, MyClubhouseUser } from "./myclubhouse.js";
