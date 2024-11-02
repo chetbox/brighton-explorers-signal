@@ -117,7 +117,7 @@ export default class SignalCli {
   }
 
   public async sendMessage(recipient: string, message: string) {
-    return await this.rpcClient.request("send", { recipient, message });
+    return await this.withTimeout(this.rpcClient.request("send", { recipient, message }));
   }
 
   public async listGroups() {
