@@ -185,7 +185,7 @@ export default class SignalCli {
       for (let i = 0; i < members.length; i++) {
         const member = members[i];
         try {
-          await new Promise((resolve) => setTimeout(resolve, 125)); // Avoid rate limiting
+          await new Promise((resolve) => setTimeout(resolve, 250)); // Avoid rate limiting
           await this.withTimeout(this.rpcClient.request("updateGroup", { groupId, members: [member] }));
         } catch (error) {
           console.warn(
@@ -252,7 +252,7 @@ export default class SignalCli {
     return rpcClient;
   }
 
-  private async withTimeout<T>(promise: PromiseLike<T>): Promise<T> {
+  private async withTimeout<T>(promise: PromiseLike<T>, timeoutDuration: number = 2000): Promise<T> {
     let timeout: NodeJS.Timeout;
 
     return Promise.race([
@@ -261,7 +261,7 @@ export default class SignalCli {
         (_, reject) =>
           (timeout = setTimeout(async () => {
             reject(new Error("Timeout"));
-          }, 5000))
+          }, timeoutDuration))
       ),
     ]).finally(() => {
       clearTimeout(timeout);
