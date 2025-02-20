@@ -13,7 +13,7 @@ runs:
       shell: bash
     - run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
       shell: bash
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       with:
         path: .signal-cli-data
         key: signal-cli-data-${{ env.RANDOM_SUFFIX }}
