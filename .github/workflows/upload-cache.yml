@@ -2,8 +2,8 @@ name: Upload signal-cli data cache
 
 on:
   push:
-    branches: [main] #uncoment to actually upload
-    #branches: [upload-cache]
+    #branches: [main] #uncoment to actually upload
+    branches: [upload-cache]
 
 jobs:
   upload-cache:
